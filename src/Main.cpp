@@ -33,7 +33,9 @@
 #include "Stage.h"
 #include "Sound.h"
 #include "Triangle.h"
-
+#include "Backends/Rendering.h"
+#include "Fade.h"
+#include "Font.h"
 void InactiveWindow(void);
 void ActiveWindow(void);
 
@@ -44,6 +46,7 @@ BOOL bFullscreen;
 
 CONFIG_BINDING bindings[BINDING_TOTAL];
 
+EFFECTIVE_DISPLAY_MODE gDisplayMode;
 static BOOL bActive = TRUE;
 static BOOL bFPS = FALSE;
 
@@ -52,6 +55,8 @@ static const char* const lpWindowName = "洞窟物語";	// "Cave Story"
 #else
 static const char* const lpWindowName = "Cave Story ~ Doukutsu Monogatari";
 #endif
+
+void (*RenderBackend_WindowSizeChangedCallback)(size_t width, size_t height);
 
 static void DragAndDropCallback(const char *path)
 {
@@ -66,6 +71,47 @@ static void WindowFocusCallback(bool focus)
 		InactiveWindow();
 }
 
+static void WindowSizeChangedCallback(size_t width, size_t height) {
+        static int oldMag = gDisplayMode.mag;
+        if(!gDisplayMode.customMag) {
+                gDisplayMode.mag = std::max(1ull, std::min(width / 426, height / 240) );
+        }
+
+        gDisplayMode.width = std::max(426ull, width / gDisplayMode.mag + width % gDisplayMode.mag);
+        gDisplayMode.height = std::max(240ull, height / gDisplayMode.mag + height % gDisplayMode.mag);
+
+//        grcGame.left = 0;
+//        grcGame.top = 0;
+//        grcGame.right = gDisplayMode.width;
+//        grcGame.bottom = gDisplayMode.height;
+
+//        grcFull.left = 0;
+//        grcFull.top = 0;
+//        grcFull.right = gDisplayMode.width;
+//        grcFull.bottom = gDisplayMode.height;
+
+        grcGame.right = gDisplayMode.width + gDisplayMode.width % 16;
+        grcGame.bottom = gDisplayMode.height + gDisplayMode.height % 16;
+
+        grcFull.right = gDisplayMode.width;
+        grcFull.bottom = gDisplayMode.height;
+
+        grcGame.left = -abs(grcGame.right - grcFull.right) / 2;
+        grcGame.top = -abs(grcGame.bottom - grcFull.bottom) / 2;
+
+        grcFull.left = 0;
+        grcFull.top = 0;
+
+        RenderBackend_FlushSurfaces();
+
+        InitFade();
+        if(oldMag != gDisplayMode.mag) {
+                oldMag = gDisplayMode.mag;
+                RestoreSurfaces();
+                UnloadFont(gFont);
+                InitTextObject(0); // nullptr
+        }
+}
 // Framerate stuff
 static unsigned long CountFramePerSecound(void)
 {
@@ -94,88 +140,108 @@ static unsigned long CountFramePerSecound(void)
 	return max_count;
 }
 
-void PutFramePerSecound(void)
-{
-	if (bFPS)
-	{
-		const unsigned long fps = CountFramePerSecound();
-		PutNumber4(WINDOW_WIDTH - 40, 8, fps, FALSE);
-	}
+void PutFramePerSecound(void) {
+        if (bFPS) {
+                const unsigned long fps = CountFramePerSecound();
+                PutNumber4(gDisplayMode.width - 40, 8, fps, FALSE);
+        }
 }
 
 // TODO - Inaccurate stack frame
-int main(int argc, char *argv[])
-{
-	(void)argc;
+int main(int argc, char *argv[]) {
+        (void)argc;
 
-	if (!Backend_Init(DragAndDropCallback, WindowFocusCallback))
-		return EXIT_FAILURE;
+        RenderBackend_WindowSizeChangedCallback = WindowSizeChangedCallback;
+        if (!Backend_Init(DragAndDropCallback, WindowFocusCallback, WindowSizeChangedCallback))
+                return EXIT_FAILURE;
 
-	// Get executable's path, and path of the data folder
-	if (!Backend_GetPaths(&gModulePath, &gDataPath))
-	{
-		// Fall back on argv[0] if the backend cannot provide a path
-		gModulePath = argv[0];
+        // Get executable's path, and path of the data folder
+        if (!Backend_GetPaths(&gModulePath, &gDataPath)) {
+                // Fall back on argv[0] if the backend cannot provide a path
+                gModulePath = argv[0];
 
-		for (size_t i = gModulePath.length();; --i)
-		{
-			if (i == 0 || gModulePath[i] == '\\' || gModulePath[i] == '/')
-			{
-				gModulePath.resize(i);
-				break;
-			}
-		}
+                for (size_t i = gModulePath.length();; --i) {
+                  if (i == 0 || gModulePath[i] == '\\' ||
+                      gModulePath[i] == '/') {
+                    gModulePath.resize(i);
+                    break;
+                  }
+                }
 
-		gDataPath = gModulePath + "/data";
-	}
+                gDataPath = gModulePath + "/data";
+        }
 
-	CONFIGDATA conf;
-	if (!LoadConfigData(&conf))
-		DefaultConfigData(&conf);
+        CONFIGDATA conf;
+        if (!LoadConfigData(&conf)) DefaultConfigData(&conf);
 
-	gSoundtrack = conf.soundtrack;
+        gSoundtrack = conf.soundtrack;
 
-	memcpy(bindings, conf.bindings, sizeof(bindings));
+        memcpy(bindings, conf.bindings, sizeof(bindings));
 
-	RECT unused_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        Backend_DisplayMode d;
 
-	switch (conf.display_mode)
-	{
-		default:
-			// Windowed
+        Backend_GetDisplayMode(&d);
 
-		#ifdef FIX_MAJOR_BUGS
-			if (!StartDirectDraw(lpWindowName, conf.display_mode, conf.b60fps, conf.bSmoothScrolling, conf.bVsync))
-			{
-				Backend_Deinit();
-				return EXIT_FAILURE;
-			}
-		#else
-			// Doesn't handle StartDirectDraw failing
-			StartDirectDraw(lpWindowName, conf.display_mode, conf.b60fps, conf.bSmoothScrolling, conf.bVsync);
-		#endif
+        switch (conf.display_mode) {
+                default:
+                  gDisplayMode.mag = conf.display_mode;
+                  gDisplayMode.scale = 1;
+                  gDisplayMode.width = 426;
+                  gDisplayMode.height = 240;
+//                  gDisplayMode.mag = 4;
+//                  gDisplayMode.customMag = true;
 
-			break;
+                  // Windowed
 
-		case 0:
-			// Fullscreen
+#ifdef FIX_MAJOR_BUGS
+                  if (!StartDirectDraw(
+                          lpWindowName, conf.display_mode, conf.b60fps,
+                          conf.bSmoothScrolling, conf.bVsync,
+                          gDisplayMode.width * gDisplayMode.mag,
+                          gDisplayMode.height * gDisplayMode.mag)) {
+                    Backend_Deinit();
+                    return EXIT_FAILURE;
+                  }
+#else
+                  // Doesn't handle StartDirectDraw failing
+                  StartDirectDraw(lpWindowName, conf.display_mode, conf.b60fps,
+                                  conf.bSmoothScrolling, conf.bVsync);
+#endif
 
-		#ifdef FIX_MAJOR_BUGS
-			if (!StartDirectDraw(lpWindowName, 0, conf.b60fps, conf.bSmoothScrolling, conf.bVsync))
-			{
-				Backend_Deinit();
-				return EXIT_FAILURE;
-			}
-		#else
-			// Doesn't handle StartDirectDraw failing
-			StartDirectDraw(lpWindowName, 0, conf.b60fps, conf.bSmoothScrolling, conf.bVsync);
-		#endif
+                  break;
 
-			bFullscreen = TRUE;
+                case 0:
+                  gDisplayMode.scale = 1;
 
-			Backend_HideMouse();
-			break;
-	}
+                  if(!gDisplayMode.customMag) {
+                    gDisplayMode.mag = std::max(1u, std::min(d.width / 426, d.height / 240));
+                  }
+
+                  gDisplayMode.width =
+                      (d.width - (d.width % 16)) / gDisplayMode.mag;
+                  gDisplayMode.height =
+                      (d.height - (d.height % 16)) / gDisplayMode.mag;
+
+                  // Fullscreen
+
+#ifdef FIX_MAJOR_BUGS
+                  if (!StartDirectDraw(lpWindowName, 0, conf.b60fps,
+                                       conf.bSmoothScrolling, conf.bVsync,
+                                       d.width, d.height)) {
+                    Backend_Deinit();
+                    return EXIT_FAILURE;
+                  }
+#else
+                  // Doesn't handle StartDirectDraw failing
+                  StartDirectDraw(lpWindowName, 0, conf.b60fps,
+                                  conf.bSmoothScrolling, conf.bVsync);
+#endif
+
+                  bFullscreen = TRUE;
+
+                  Backend_HideMouse();
+                  break;
+        }
 
 #ifdef DEBUG_SAVE
 	Backend_EnableDragAndDrop();
@@ -199,62 +265,64 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	// Set up the cursor
-	std::string cursor_path = gDataPath + "/Resource/CURSOR/CURSOR_NORMAL.png";
+        // Set up the cursor
+        std::string cursor_path =
+            gDataPath + "/Resource/CURSOR/CURSOR_NORMAL.png";
 
-	size_t cursor_width, cursor_height;
-	unsigned char *cursor_rgba_pixels = DecodeBitmapFromFile(cursor_path.c_str(), &cursor_width, &cursor_height, 4);
+        size_t cursor_width, cursor_height;
+        unsigned char *cursor_rgba_pixels = DecodeBitmapFromFile(
+            cursor_path.c_str(), &cursor_width, &cursor_height, 4);
 
-	if (cursor_rgba_pixels != NULL)
-	{
-		Backend_SetCursor(cursor_rgba_pixels, cursor_width, cursor_height);
-		FreeBitmap(cursor_rgba_pixels);
-	}
+        if (cursor_rgba_pixels != NULL) {
+                Backend_SetCursor(cursor_rgba_pixels, cursor_width,
+                                  cursor_height);
+                FreeBitmap(cursor_rgba_pixels);
+        }
 
-	if (IsKeyFile("fps"))
-		bFPS = TRUE;
+        if (IsKeyFile("fps")) bFPS = TRUE;
 
-	// Set rects
-	RECT rcLoading = {0, 0, 64, 8};
-	RECT rcFull = {0, 0, 0, 0};
-	rcFull.right = WINDOW_WIDTH;
-	rcFull.bottom = WINDOW_HEIGHT;
+        // Set rects
+        RECT rcLoading = {0, 0, 64, 8};
+        RECT rcFull = {0, 0, 0, 0};
+        rcFull.right = gDisplayMode.width;
+        rcFull.bottom = gDisplayMode.height;
 
-	// Load the "LOADING" text
-	BOOL b = MakeSurface_File("Loading", SURFACE_ID_LOADING);
+        // Load the "LOADING" text
+        BOOL b = MakeSurface_File("Loading", SURFACE_ID_LOADING);
 
-	// Draw loading screen
-	CortBox(&rcFull, 0x000000);
-	PutBitmap3(&rcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 32), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 4), &rcLoading, SURFACE_ID_LOADING);
+        // Draw loading screen
+        CortBox(&rcFull, 0x000000);
+        PutBitmap3(&rcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 32),
+                   PixelToScreenCoord((gDisplayMode.height / 2) - 4),
+                   &rcLoading, SURFACE_ID_LOADING);
 
-	// Draw to screen
-	if (!Flip_SystemTask())
-	{
-		Backend_Deinit();
-		return EXIT_SUCCESS;
-	}
+        // Draw to screen
+        if (!Flip_SystemTask()) {
+                Backend_Deinit();
+                return EXIT_SUCCESS;
+        }
 
-	// Initialize sound
-	InitDirectSound();
+        // Initialize sound
+        InitDirectSound();
 
-	// Initialize joystick
-	InitDirectInput();
+        // Initialize joystick
+        InitDirectInput();
 
-	// Initialize stuff
-	InitTextObject(conf.font_name);
-	InitTriangleTable();
+        // Initialize stuff
+        InitTextObject(conf.font_name);
+        InitTriangleTable();
 
-	// Run game code
-	Game();
+        // Run game code
+        Game();
 
-	// End stuff
-	EndTextObject();
-	EndDirectSound();
-	EndDirectDraw();
+        // End stuff
+        EndTextObject();
+        EndDirectSound();
+        EndDirectDraw();
 
-	Backend_Deinit();
+        Backend_Deinit();
 
-	return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
 }
 
 void InactiveWindow(void)

@@ -11,7 +11,7 @@
 
 #include "CommonDefines.h"
 
-#define MAX_STRIP ((WINDOW_HEIGHT / 16) + 1)
+#define MAX_STRIP ((gDisplayMode.height / 16) + 1)
 
 void ActionStripper(void);
 void PutStripper(void);

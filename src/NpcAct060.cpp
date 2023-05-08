@@ -1538,7 +1538,7 @@ void ActNpc072(NPCHAR *npc)
 			return;
 		}
 
-		if (gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 120) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+		if (gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 120) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 120) * 0x200))
 		{
 			if (++npc->act_no % 2)
 				SetNpChar(73, npc->x, npc->y, Random(-0x200, 0x200) * 2, Random(-0x200, 0x80) * 3, 0, NULL, 0x100);

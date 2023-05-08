@@ -29,49 +29,55 @@ static SDL_Cursor *cursor;
 
 static void (*drag_and_drop_callback)(const char *path);
 static void (*window_focus_callback)(bool focus);
+static void (*window_size_changed_callback)(size_t width, size_t height);
 
-bool Backend_Init(void (*drag_and_drop_callback_param)(const char *path), void (*window_focus_callback_param)(bool focus))
+bool Backend_Init(void (*drag_and_drop_callback_param)(const char *path), void (*window_focus_callback_param)(bool focus), void (*window_size_changed_callback_param)(size_t width, size_t height))
 {
-	drag_and_drop_callback = drag_and_drop_callback_param;
-	window_focus_callback = window_focus_callback_param;
+        drag_and_drop_callback = drag_and_drop_callback_param;
+        window_focus_callback = window_focus_callback_param;
+        window_size_changed_callback = window_size_changed_callback_param;
 
-	if (SDL_Init(SDL_INIT_EVENTS) == 0)
-	{
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO) == 0)
-		{
-			Backend_PrintInfo("Available SDL video drivers:");
+        SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "system"); // This seems to work on its own (on Windows) but I'm unsure about other platforms so I will leave the other hints
+        SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "0");
+        SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
 
-			for (int i = 0; i < SDL_GetNumVideoDrivers(); ++i)
-				Backend_PrintInfo("%s", SDL_GetVideoDriver(i));
+        if (SDL_Init(SDL_INIT_EVENTS) == 0)
+        {
+                if (SDL_InitSubSystem(SDL_INIT_VIDEO) == 0)
+                {
+                        Backend_PrintInfo("Available SDL video drivers:");
 
-			const char *driver = SDL_GetCurrentVideoDriver();
+                        for (int i = 0; i < SDL_GetNumVideoDrivers(); ++i)
+                                Backend_PrintInfo("%s", SDL_GetVideoDriver(i));
 
-			if (driver != NULL)
-			{
-				Backend_PrintInfo("Selected SDL video driver: %s", driver);
+                        const char *driver = SDL_GetCurrentVideoDriver();
 
-				return true;
-			}
-			else
-			{
-				Backend_PrintError("No SDL video driver initialized!");
-			}
-		}
-		else
-		{
-			std::string error_message = std::string("Could not initialise SDL video subsystem: ") + SDL_GetError();
-			Backend_ShowMessageBox("Fatal error", error_message.c_str());
-		}
+                        if (driver != NULL)
+                        {
+                                Backend_PrintInfo("Selected SDL video driver: %s", driver);
 
-		SDL_Quit();
-	}
-	else
-	{
-		std::string error_message = std::string("Could not initialise SDL: ") + SDL_GetError();
-		Backend_ShowMessageBox("Fatal error", error_message.c_str());
-	}
+                                return true;
+                        }
+                        else
+                        {
+                                Backend_PrintError("No SDL video driver initialized!");
+                        }
+                }
+                else
+                {
+                        std::string error_message = std::string("Could not initialise SDL video subsystem: ") + SDL_GetError();
+                        Backend_ShowMessageBox("Fatal error", error_message.c_str());
+                }
 
-	return false;
+                SDL_Quit();
+        }
+        else
+        {
+                std::string error_message = std::string("Could not initialise SDL: ") + SDL_GetError();
+                Backend_ShowMessageBox("Fatal error", error_message.c_str());
+        }
+
+        return false;
 }
 
 void Backend_Deinit(void)
@@ -138,6 +144,12 @@ void Backend_SetWindowIcon(const unsigned char *rgb_pixels, size_t width, size_t
 	{
 		Backend_PrintError("Couldn't create RGB surface for window icon: %s", SDL_GetError());
 	}
+}
+
+void Backend_SetSizeConstraints(const unsigned int min_width, const unsigned int min_height, const unsigned int max_width, const unsigned int max_height) {
+        if(!window) return;
+        if(min_width && min_height) SDL_SetWindowMinimumSize(window, min_width, min_height);
+        if(max_width && max_height) SDL_SetWindowMaximumSize(window, max_width, max_height);
 }
 
 void Backend_SetCursor(const unsigned char *rgba_pixels, size_t width, size_t height)
@@ -291,10 +303,11 @@ bool Backend_SystemTask(bool active)
 						window_focus_callback(true);
 						break;
 
-					case SDL_WINDOWEVENT_RESIZED:
-					case SDL_WINDOWEVENT_SIZE_CHANGED:
-						RenderBackend_HandleWindowResize(event.window.data1, event.window.data2);
-						break;
+//                                        case SDL_WINDOWEVENT_RESIZED:
+//                                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+//                                                RenderBackend_HandleWindowResize(event.window.data1, event.window.data2);
+//                                                break;
+//                                        Removed in favor of event listener approach, which handles continuous resize events
 				}
 
 				break;
@@ -357,10 +370,10 @@ void Backend_Delay(unsigned int ticks)
 
 void Backend_GetDisplayMode(Backend_DisplayMode *display_mode)
 {
-	SDL_DisplayMode sdl_display_mode;
-	SDL_GetDesktopDisplayMode(0, &sdl_display_mode);
+        SDL_DisplayMode sdl_display_mode;
+        SDL_GetDesktopDisplayMode(0, &sdl_display_mode);
 
-	display_mode->width = sdl_display_mode.w;
-	display_mode->height = sdl_display_mode.h;
-	display_mode->refresh_rate = sdl_display_mode.refresh_rate;
+        display_mode->width = sdl_display_mode.w;
+        display_mode->height = sdl_display_mode.h;
+        display_mode->refresh_rate = sdl_display_mode.refresh_rate;
 }

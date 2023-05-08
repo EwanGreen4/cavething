@@ -65,23 +65,17 @@ int Random(int min, int max)
 
 void PutNumber4(int x, int y, int value, BOOL bZero)
 {
-	// Define rects
-	RECT rcClient = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        // Define rects
+        RECT rcClient = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
-	RECT rect[10] = {
-		{0, 56, 8, 64},
-		{8, 56, 16, 64},
-		{16, 56, 24, 64},
-		{24, 56, 32, 64},
-		{32, 56, 40, 64},
-		{40, 56, 48, 64},
-		{48, 56, 56, 64},
-		{56, 56, 64, 64},
-		{64, 56, 72, 64},
-		{72, 56, 80, 64},
-	};
+        RECT rect[10] = {
+            {0, 56, 8, 64},   {8, 56, 16, 64},  {16, 56, 24, 64},
+            {24, 56, 32, 64}, {32, 56, 40, 64}, {40, 56, 48, 64},
+            {48, 56, 56, 64}, {56, 56, 64, 64}, {64, 56, 72, 64},
+            {72, 56, 80, 64},
+        };
 
-	// Digits
+        // Digits
 	int tbl[4] = {1000, 100, 10, 1};
 
 	int a;
@@ -150,29 +144,29 @@ static void PutBlackBars(int fx, int fy)
 	rect.left = 0;
 	rect.top = 0;
 	rect.right = stage_left - (fx / 0x200);
-	rect.bottom = WINDOW_HEIGHT;
-	CortBox(&rect, 0);
+        rect.bottom = gDisplayMode.height;
+        CortBox(&rect, 0);
 
 	// Right bar
 	rect.left = stage_left + stage_width - (fx / 0x200);
-	rect.top = 0;
-	rect.right = WINDOW_WIDTH;
-	rect.bottom = WINDOW_HEIGHT;
-	CortBox(&rect, 0);
+        rect.top = 0;
+        rect.right = gDisplayMode.width;
+        rect.bottom = gDisplayMode.height;
+        CortBox(&rect, 0);
 
 	// Top bar
 	rect.left = 0;
-	rect.top = 0;
-	rect.right = WINDOW_WIDTH;
-	rect.bottom = stage_top - (fy / 0x200);
-	CortBox(&rect, 0);
+        rect.top = 0;
+        rect.right = gDisplayMode.width;
+        rect.bottom = stage_top - (fy / 0x200);
+        CortBox(&rect, 0);
 
 	// Bottom bar
 	rect.left = 0;
-	rect.top = stage_top + stage_height - (fy / 0x200);
-	rect.right = WINDOW_WIDTH;
-	rect.bottom = WINDOW_HEIGHT;
-	CortBox(&rect, 0);
+        rect.top = stage_top + stage_height - (fy / 0x200);
+        rect.right = gDisplayMode.width;
+        rect.bottom = gDisplayMode.height;
+        CortBox(&rect, 0);
 }
 
 static int ModeOpening(void)
@@ -196,9 +190,9 @@ static int ModeOpening(void)
 	grcGame.left = 0;
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
 	// Non-vanilla: these three lines are widescreen-related
-	grcGame.top = 0;
-	grcGame.right = WINDOW_WIDTH;
-	grcGame.bottom = WINDOW_HEIGHT;
+        grcGame.top = 0;
+        grcGame.right = gDisplayMode.width;
+        grcGame.bottom = gDisplayMode.height;
 #endif
 
 	g_GameFlags = 3;
@@ -410,9 +404,9 @@ static int ModeTitle(void)
 	grcGame.left = 0;
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
 	// Non-vanilla: these three lines are widescreen-related
-	grcGame.top = 0;
-	grcGame.right = WINDOW_WIDTH;
-	grcGame.bottom = WINDOW_HEIGHT;
+        grcGame.top = 0;
+        grcGame.right = gDisplayMode.width;
+        grcGame.bottom = gDisplayMode.height;
 #endif
 
 	g_GameFlags = 0;
@@ -485,23 +479,44 @@ static int ModeTitle(void)
 		// Draw title
 		CortBox(&grcGame, back_color);
 
-		// Draw version
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 60), PixelToScreenCoord(WINDOW_HEIGHT - 24), &rcVersion, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 4), PixelToScreenCoord(WINDOW_HEIGHT - 24), &rcPeriod, SURFACE_ID_TEXT_BOX);
+                // Draw version
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 60),
+                           PixelToScreenCoord(gDisplayMode.height - 24),
+                           &rcVersion, SURFACE_ID_TEXT_BOX);
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 4),
+                           PixelToScreenCoord(gDisplayMode.height - 24),
+                           &rcPeriod, SURFACE_ID_TEXT_BOX);
 
-		PutNumber4((WINDOW_WIDTH / 2) - 20, WINDOW_HEIGHT - 24, v1, FALSE);
-		PutNumber4((WINDOW_WIDTH / 2) - 4, WINDOW_HEIGHT - 24, v2, FALSE);
-		PutNumber4((WINDOW_WIDTH / 2) + 12, WINDOW_HEIGHT - 24, v3, FALSE);
-		PutNumber4((WINDOW_WIDTH / 2) + 28, WINDOW_HEIGHT - 24, v4, FALSE);
+                PutNumber4((gDisplayMode.width / 2) - 20,
+                           gDisplayMode.height - 24, v1, FALSE);
+                PutNumber4((gDisplayMode.width / 2) - 4,
+                           gDisplayMode.height - 24, v2, FALSE);
+                PutNumber4((gDisplayMode.width / 2) + 12,
+                           gDisplayMode.height - 24, v3, FALSE);
+                PutNumber4((gDisplayMode.width / 2) + 28,
+                           gDisplayMode.height - 24, v4, FALSE);
 
-		// Draw main title
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 72), PixelToScreenCoord(40), &rcTitle, SURFACE_ID_TITLE);
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 24), PixelToScreenCoord((WINDOW_HEIGHT / 2) + 8), &rcNew, SURFACE_ID_TITLE);
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 24), PixelToScreenCoord((WINDOW_HEIGHT / 2) + 28), &rcContinue, SURFACE_ID_TITLE);
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 80), PixelToScreenCoord(WINDOW_HEIGHT - 48), &rcPixel, SURFACE_ID_PIXEL);
+                // Draw main title
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 72),
+                           PixelToScreenCoord(40), &rcTitle, SURFACE_ID_TITLE);
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 24),
+                           PixelToScreenCoord((gDisplayMode.height / 2) + 8),
+                           &rcNew, SURFACE_ID_TITLE);
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 24),
+                           PixelToScreenCoord((gDisplayMode.height / 2) + 28),
+                           &rcContinue, SURFACE_ID_TITLE);
+                PutBitmap3(&grcGame,
+                           PixelToScreenCoord((gDisplayMode.width / 2) - 80),
+                           PixelToScreenCoord(gDisplayMode.height - 48),
+                           &rcPixel, SURFACE_ID_PIXEL);
 
-		// Draw character cursor
-		switch (char_type)
+                // Draw character cursor
+                switch (char_type)
 		{
 			case 0:
 				char_rc = rcMyChar[anime / 10 % 4];
@@ -526,18 +541,24 @@ static int ModeTitle(void)
 		}
 
 		if (!bContinue)
-			char_y = (WINDOW_HEIGHT / 2) + 7;
-		else
-			char_y = (WINDOW_HEIGHT / 2) + 27;
+                        char_y = (gDisplayMode.height / 2) + 7;
+                else
+                        char_y = (gDisplayMode.height / 2) + 27;
 
-		// Pixel being redundant
-		if (!bContinue)
-			PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 44), PixelToScreenCoord(char_y), &char_rc, char_surf);
-		else
-			PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 44), PixelToScreenCoord(char_y), &char_rc, char_surf);
+                // Pixel being redundant
+                if (!bContinue)
+                        PutBitmap3(
+                            &grcGame,
+                            PixelToScreenCoord((gDisplayMode.width / 2) - 44),
+                            PixelToScreenCoord(char_y), &char_rc, char_surf);
+                else
+                        PutBitmap3(
+                            &grcGame,
+                            PixelToScreenCoord((gDisplayMode.width / 2) - 44),
+                            PixelToScreenCoord(char_y), &char_rc, char_surf);
 
-		// Draw carets
-		PutCaret(0, 0);
+                // Draw carets
+                PutCaret(0, 0);
 
 		if (time_counter)
 			PutTimeCounter(16, 8);
@@ -578,9 +599,9 @@ static int ModeAction(void)
 	grcGame.left = 0;
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
 	// Non-vanilla: these three lines are widescreen-related
-	grcGame.top = 0;
-	grcGame.right = WINDOW_WIDTH;
-	grcGame.bottom = WINDOW_HEIGHT;
+        grcGame.top = 0;
+        grcGame.right = gDisplayMode.width;
+        grcGame.bottom = gDisplayMode.height;
 #endif
 	g_GameFlags = 3;
 
@@ -764,10 +785,11 @@ static int ModeAction(void)
 		if (g_GameFlags & 2)
 		{
 			PutMyLife(TRUE);
-			PutArmsEnergy(TRUE);
-			PutMyAir((WINDOW_WIDTH / 2) - 40, (WINDOW_HEIGHT / 2) - 16);
-			PutActiveArmsList();
-		}
+                        PutArmsEnergy(TRUE);
+                        PutMyAir((gDisplayMode.width / 2) - 40,
+                                 (gDisplayMode.height / 2) - 16);
+                        PutActiveArmsList();
+                }
 
 		if (g_GameFlags & 8)
 		{

@@ -16,6 +16,7 @@ typedef struct RenderBackend_Rect
 	long bottom;
 } RenderBackend_Rect;
 
+extern void (*RenderBackend_WindowSizeChangedCallback)(size_t width, size_t height);
 RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t screen_width, size_t screen_height, bool fullscreen, bool *vsync);
 void RenderBackend_Deinit(void);
 void RenderBackend_DrawScreen(void);
@@ -31,5 +32,6 @@ void RenderBackend_DestroyGlyphAtlas(RenderBackend_GlyphAtlas *atlas);
 void RenderBackend_UploadGlyph(RenderBackend_GlyphAtlas *atlas, size_t x, size_t y, const unsigned char *pixels, size_t width, size_t height, size_t pitch);
 void RenderBackend_PrepareToDrawGlyphs(RenderBackend_GlyphAtlas *atlas, RenderBackend_Surface *destination_surface, unsigned char red, unsigned char green, unsigned char blue);
 void RenderBackend_DrawGlyph(long x, long y, size_t glyph_x, size_t glyph_y, size_t glyph_width, size_t glyph_height);
+void RenderBackend_FlushSurfaces(void);
 void RenderBackend_HandleRenderTargetLoss(void);
 void RenderBackend_HandleWindowResize(size_t width, size_t height);

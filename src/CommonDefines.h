@@ -7,15 +7,29 @@
 
 #pragma once
 
-#ifdef _3DS
- #define WINDOW_WIDTH 400
- #define WINDOW_HEIGHT 240
-#else
- #define WINDOW_WIDTH 426
- #define WINDOW_HEIGHT 240
-#endif
+// #ifdef _3DS
+//  #define WINDOW_WIDTH 400
+//  #define WINDOW_HEIGHT 240
+// #else
+//  #define WINDOW_WIDTH 426
+//  #define WINDOW_HEIGHT 240
+// #endif
 
-#define SPRITE_SCALE 1	// Set to 2 for 2x sprites, 4 for 4x, etc. Must be a power of 2
+struct EFFECTIVE_DISPLAY_MODE {
+  int width = 0;
+  int height= 0;
+  int refresh= 0; // yet unused
+  int scale= 0; // yet unused
+  int mag= 0;
+  bool customMag = false;
+};
+extern EFFECTIVE_DISPLAY_MODE gDisplayMode;
+
+// int gDisplayMode.width = 426;
+// int gDisplayMode.height = 240;
+
+// #define SPRITE_SCALE 1	// Set to 2 for 2x sprites, 4 for 4x, etc. Must
+// be a power of 2
 
 enum Collisions
 {

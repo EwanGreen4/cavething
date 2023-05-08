@@ -4,6 +4,7 @@
 // Dual OpenGL 3.2 and OpenGL ES 2.0 renderer
 
 #include "../Rendering.h"
+#include "../../CommonDefines.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -23,6 +24,8 @@
 
 #define ATTRIBUTE_INPUT_VERTEX_COORDINATES 1
 #define ATTRIBUTE_INPUT_TEXTURE_COORDINATES 2
+
+//EFFECTIVE_DISPLAY_MODE gDisplayMode;
 
 typedef enum RenderMode
 {
@@ -544,21 +547,21 @@ void RenderBackend_DrawScreen(void)
 	framebuffer_rect.right = framebuffer_surface->width;
 	framebuffer_rect.bottom = framebuffer_surface->height;
 
-	if (upscaled_framebuffer_surface == NULL)
-	{
+//        if (upscaled_framebuffer_surface == NULL)
+//        {
 		Blit(framebuffer_surface, &framebuffer_rect, &window_surface, &window_rect, false);
-	}
-	else
-	{
-		RenderBackend_Rect upscaled_framebuffer_rect;
-		upscaled_framebuffer_rect.left = 0;
-		upscaled_framebuffer_rect.top = 0;
-		upscaled_framebuffer_rect.right = upscaled_framebuffer_surface->width;
-		upscaled_framebuffer_rect.bottom = upscaled_framebuffer_surface->height;
+//        }
+//        else
+//        {
+//                RenderBackend_Rect upscaled_framebuffer_rect;
+//                upscaled_framebuffer_rect.left = 0;
+//                upscaled_framebuffer_rect.top = 0;
+//                upscaled_framebuffer_rect.right = upscaled_framebuffer_surface->width;
+//                upscaled_framebuffer_rect.bottom = upscaled_framebuffer_surface->height;
 
-		Blit(framebuffer_surface, &framebuffer_rect, upscaled_framebuffer_surface, &upscaled_framebuffer_rect, false);
-		Blit(upscaled_framebuffer_surface, &upscaled_framebuffer_rect, &window_surface, &window_rect, false);
-	}
+//                Blit(framebuffer_surface, &framebuffer_rect, upscaled_framebuffer_surface, &upscaled_framebuffer_rect, false);
+//                Blit(upscaled_framebuffer_surface, &upscaled_framebuffer_rect, &window_surface, &window_rect, false);
+//        }
 
 	// Target actual screen, and not our framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1028,44 +1031,48 @@ void RenderBackend_HandleRenderTargetLoss(void)
 	// No problem for us
 }
 
+
+
 void RenderBackend_HandleWindowResize(size_t width, size_t height)
 {
-	size_t upscale_factor = MAX(1, MIN((width + framebuffer_surface->width / 2) / framebuffer_surface->width, (height + framebuffer_surface->height / 2) / framebuffer_surface->height));
+        size_t upscale_factor = 1;
+        size_t upscale_factor = MAX(1, MIN((width + framebuffer_surface->width / 2) / framebuffer_surface->width, (height + framebuffer_surface->height / 2) / framebuffer_surface->height));
 
-	size_t upscaled_framebuffer_width = framebuffer_surface->width * upscale_factor;
-	size_t upscaled_framebuffer_height = framebuffer_surface->height * upscale_factor;
+        size_t upscaled_framebuffer_width = framebuffer_surface->width * upscale_factor;
+        size_t upscaled_framebuffer_height = framebuffer_surface->height * upscale_factor;
 
-	if (upscaled_framebuffer_surface != NULL)
-	{
-		RenderBackend_FreeSurface(upscaled_framebuffer_surface);
-		upscaled_framebuffer_surface = NULL;
-	}
+        if (upscaled_framebuffer_surface != NULL)
+        {
+                RenderBackend_FreeSurface(upscaled_framebuffer_surface);
+                upscaled_framebuffer_surface = NULL;
+        }
 
-	// Create rect that forces 4:3 no matter what size the window is
-	if (width * upscaled_framebuffer_height >= upscaled_framebuffer_width * height) // Fancy way to do `if (width / height >= upscaled_framebuffer->width / upscaled_framebuffer->height)` without floats
-	{
-		window_rect.right = (height * upscaled_framebuffer_width) / upscaled_framebuffer_height;
-		window_rect.bottom = height;
-	}
-	else
-	{
-		window_rect.right = width;
-		window_rect.bottom = (width * upscaled_framebuffer_height) / upscaled_framebuffer_width;
-	}
+        // Create rect that forces 4:3 no matter what size the window is
+        if (width * upscaled_framebuffer_height >= upscaled_framebuffer_width * height) // Fancy way to do `if (width / height >= upscaled_framebuffer->width / upscaled_framebuffer->height)` without floats
+        {
+                window_rect.right = (height * upscaled_framebuffer_width) / upscaled_framebuffer_height;
+                window_rect.bottom = height;
+        }
+        else
+        {
+                window_rect.right = width;
+                window_rect.bottom = (width * upscaled_framebuffer_height) / upscaled_framebuffer_width;
+        }
 
-	window_rect.left = (width - window_rect.right) / 2;
-	window_rect.top = (height - window_rect.bottom) / 2;
-	window_rect.right += window_rect.left;
-	window_rect.bottom += window_rect.top;
 
-	window_surface.width = width;
-	window_surface.height = height;
+        window_rect.left = (width - window_rect.right) / 2;
+        window_rect.top = (height - window_rect.bottom) / 2;
+        window_rect.right += window_rect.left;
+        window_rect.bottom += window_rect.top;
 
-	if ((window_rect.right - window_rect.left) % framebuffer_surface->width != 0 || (window_rect.bottom - window_rect.top) % framebuffer_surface->height != 0)
-	{
-		upscaled_framebuffer_surface = CreateSurface(upscaled_framebuffer_width, upscaled_framebuffer_height, true);
+        window_surface.width = width;
+        window_surface.height = height;
 
-		if (upscaled_framebuffer_surface == NULL)
-			Backend_PrintError("Couldn't regenerate upscaled framebuffer");
-	}
+        if ((window_rect.right - window_rect.left) % framebuffer_surface->width != 0 || (window_rect.bottom - window_rect.top) % framebuffer_surface->height != 0)
+        {
+                upscaled_framebuffer_surface = CreateSurface(upscaled_framebuffer_width, upscaled_framebuffer_height, true);
+
+                if (upscaled_framebuffer_surface == NULL)
+                        Backend_PrintError("Couldn't regenerate upscaled framebuffer");
+        }
 }

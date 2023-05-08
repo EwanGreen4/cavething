@@ -106,17 +106,17 @@ void PutMapName(BOOL bMini)
 		// Map system
 		RECT rcBack;
 		rcBack.left = 0;
-		rcBack.right = WINDOW_WIDTH;
+		rcBack.right = gDisplayMode.width;
 		rcBack.top = 7;
 		rcBack.bottom = 24;
 
 		CortBox(&rcBack, 0x000000);
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 86), PixelToScreenCoord(10), &rc, SURFACE_ID_ROOM_NAME);
+		PutBitmap3(&grcGame, PixelToScreenCoord((gDisplayMode.width / 2) - 86), PixelToScreenCoord(10), &rc, SURFACE_ID_ROOM_NAME);
 	}
 	else if (gMapName.flag)
 	{
 		// MNA
-		PutBitmap3(&grcGame, PixelToScreenCoord((WINDOW_WIDTH / 2) - 86), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 40), &rc, SURFACE_ID_ROOM_NAME);
+		PutBitmap3(&grcGame, PixelToScreenCoord((gDisplayMode.width / 2) - 86), PixelToScreenCoord((gDisplayMode.height / 2) - 40), &rc, SURFACE_ID_ROOM_NAME);
 		if (++gMapName.wait > 160)
 			gMapName.flag = FALSE;
 	}

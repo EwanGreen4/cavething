@@ -1973,7 +1973,7 @@ void ActNpc359(NPCHAR *npc)
 {
 	int x;
 
-	if (gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 200) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 40) * 0x200) && Random(0, 100) == 2)
+	if (gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 200) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 40) * 0x200) && Random(0, 100) == 2)
 	{
 		x = npc->x + (Random(-6, 6) * 0x200);
 		SetNpChar(73, x, npc->y - (7 * 0x200), 0, 0, 0, 0, 0);

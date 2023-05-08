@@ -160,8 +160,8 @@ void PutStage_Back(int fx, int fy)
 	int offset;
 
 	// Get range to draw
-	int num_x = MIN(gMap.width, ((WINDOW_WIDTH + (16 - 1)) / 16) + 1);
-	int num_y = MIN(gMap.length, ((WINDOW_HEIGHT + (16 - 1)) / 16) + 1);
+	int num_x = MIN(gMap.width, ((gDisplayMode.width + (16 - 1)) / 16) + 1);
+	int num_y = MIN(gMap.length, ((gDisplayMode.height + (16 - 1)) / 16) + 1);
 	int put_x = MAX(0, ((fx / 0x200) + 8) / 16);
 	int put_y = MAX(0, ((fy / 0x200) + 8) / 16);
 
@@ -197,8 +197,8 @@ void PutStage_Front(int fx, int fy)
 	int offset;
 
 	// Get range to draw
-	int num_x = MIN(gMap.width, ((WINDOW_WIDTH + (16 - 1)) / 16) + 1);
-	int num_y = MIN(gMap.length, ((WINDOW_HEIGHT + (16 - 1)) / 16) + 1);
+	int num_x = MIN(gMap.width, ((gDisplayMode.width + (16 - 1)) / 16) + 1);
+	int num_y = MIN(gMap.length, ((gDisplayMode.height + (16 - 1)) / 16) + 1);
 	int put_x = MAX(0, ((fx / 0x200) + 8) / 16);
 	int put_y = MAX(0, ((fy / 0x200) + 8) / 16);
 
@@ -248,8 +248,8 @@ void PutMapDataVector(int fx, int fy)
 	count += 2;
 
 	// Get range to draw
-	num_x = MIN(gMap.width, ((WINDOW_WIDTH + (16 - 1)) / 16) + 1);
-	num_y = MIN(gMap.length, ((WINDOW_HEIGHT + (16 - 1)) / 16) + 1);
+	num_x = MIN(gMap.width, ((gDisplayMode.width + (16 - 1)) / 16) + 1);
+	num_y = MIN(gMap.length, ((gDisplayMode.height + (16 - 1)) / 16) + 1);
 	put_x = MAX(0, ((fx / 0x200) + 8) / 16);
 	put_y = MAX(0, ((fy / 0x200) + 8) / 16);
 

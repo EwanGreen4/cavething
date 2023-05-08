@@ -40,11 +40,11 @@ typedef enum SurfaceType
 	SURFACE_SOURCE_FILE
 } SurfaceType;
 
-RECT grcGame = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-RECT grcFull = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+RECT grcGame;
+RECT grcFull;
 
-static int mag;
-static BOOL fullscreen;	// TODO - Not the original variable name
+//static int mag;
+static BOOL fullscreen;  // TODO - Not the original variable name
 
 BOOL gb60fps;
 BOOL gbSmoothScrolling;
@@ -59,7 +59,7 @@ static RenderBackend_Surface *framebuffer;	// TODO - Not the original variable n
 
 static RenderBackend_Surface *surf[SURFACE_ID_MAX];
 
-static Font *font;	// TODO - Not the original variable name
+Font *gFont;	// TODO - Not the original variable name
 
 // This doesn't exist in the Linux port, so none of these symbol names are accurate
 static struct
@@ -130,51 +130,63 @@ BOOL Flip_SystemTask(void)
 	return TRUE;
 }
 
-BOOL StartDirectDraw(const char *title, int lMagnification, BOOL b60fps, BOOL bSmoothScrolling, BOOL bVsync)
-{
-	gb60fps = b60fps;
-	gbSmoothScrolling = bSmoothScrolling;
+BOOL StartDirectDraw(const char *title, int lMagnification, BOOL b60fps,
+                     BOOL bSmoothScrolling, BOOL bVsync, int requestedWidth,
+                     int requestedHeight) {
+//        grcGame = {0, 0, gDisplayMode.width, gDisplayMode.height};
+//        grcFull = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
-	Backend_DisplayMode display_mode;
-	Backend_GetDisplayMode(&display_mode);
-	vsync_fps = display_mode.refresh_rate;
+        gb60fps = b60fps;
+        gbSmoothScrolling = bSmoothScrolling;
 
-	memset(surface_metadata, 0, sizeof(surface_metadata));
+        Backend_DisplayMode display_mode;
+        Backend_GetDisplayMode(&display_mode);
+        vsync_fps = display_mode.refresh_rate;
 
-	switch (lMagnification)
-	{
-		default:
-			mag = lMagnification;
-			fullscreen = FALSE;
-			break;
+        memset(surface_metadata, 0, sizeof(surface_metadata));
 
-		case 0:	// Fullscreen
-			// Round to the nearest internal resolution
-			mag = MIN((display_mode.width + (WINDOW_WIDTH / 2)) / WINDOW_WIDTH, (display_mode.height + (WINDOW_HEIGHT / 2)) / WINDOW_HEIGHT);
-			fullscreen = TRUE;
-			break;
-	}
+        switch (lMagnification) {
+                default:
+//                        mag = lMagnification;
+                        fullscreen = FALSE;
+                        break;
 
-	// Round down to the nearest multiple of SPRITE_SCALE (we can't use 2x sprites at 1x or 3x internal resolution)
-	mag -= mag % SPRITE_SCALE;
+                case 0:  // Fullscreen
+                        // Round to the nearest internal resolution
+//                        mag = MIN(
+//                            (display_mode.width + (gDisplayMode.width / 2)) /
+//                                gDisplayMode.width,
+//                            (display_mode.height + (gDisplayMode.height / 2)) /
+//                                gDisplayMode.height);
+                        fullscreen = TRUE;
+                        break;
+        }
 
-	// Account for rounding-down to 0
-	if (mag == 0)
-		mag = SPRITE_SCALE;
+        // Round down to the nearest multiple of gDisplayMode.scale (we can't
+        // use 2x sprites at 1x or 3x internal resolution)
+//        mag -= mag % gDisplayMode.scale;
 
-	// If v-sync is requested, check if it's available
-	if (bVsync)
-		gbVsync = vsync_fps == (b60fps ? 60 : 50);
+        // Account for rounding-down to 0
+//        if (mag == 0) mag = gDisplayMode.scale;
 
-	bool requested_vsync = gbVsync;
-	framebuffer = RenderBackend_Init(title, WINDOW_WIDTH * mag, WINDOW_HEIGHT * mag, fullscreen, &requested_vsync);
+        // If v-sync is requested, check if it's available
+        if (bVsync) gbVsync = vsync_fps == (b60fps ? 60 : 50);
 
-	gbVsync = requested_vsync;
+        bool requested_vsync = gbVsync;
+        framebuffer =
+            RenderBackend_Init(title, /*gDisplayMode.width * mag*/
+                               requestedWidth,
+                               /*gDisplayMode.height * mag*/ requestedHeight,
+                               fullscreen, &requested_vsync);
+        Backend_SetSizeConstraints(426, 240, 0, 0);
+        RenderBackend_WindowSizeChangedCallback(requestedWidth, requestedHeight);
 
-	if (framebuffer == NULL)
-		return FALSE;
 
-	return TRUE;
+        gbVsync = requested_vsync;
+
+        if (framebuffer == NULL) return FALSE;
+
+        return TRUE;
 }
 
 void EndDirectDraw(void)
@@ -210,101 +222,101 @@ void ReleaseSurface(SurfaceID s)
 	memset(&surface_metadata[s], 0, sizeof(surface_metadata[0]));
 }
 
-static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, size_t width, size_t height, SurfaceID surf_no)
-{
-	const int magnification_scaled = mag / SPRITE_SCALE;
+static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer,
+                                  size_t width, size_t height,
+                                  SurfaceID surf_no) {
+        const int magnification_scaled = gDisplayMode.mag / gDisplayMode.scale;
 
-	if (magnification_scaled == 1)
-	{
-		// Just copy the pixels the way they are
-		RenderBackend_UploadSurface(surf[surf_no], image_buffer, width, height);
-	}
-	else
-	{
-		unsigned char *upscaled_image_buffer = (unsigned char*)malloc(width * mag * height * mag * 4);
+        if (magnification_scaled == 1) {
+                // Just copy the pixels the way they are
+                RenderBackend_UploadSurface(surf[surf_no], image_buffer, width,
+                                            height);
+        } else {
+                unsigned char *upscaled_image_buffer =
+                    (unsigned char *)malloc(width * gDisplayMode.mag * height * gDisplayMode.mag * 4);
 
-		if (upscaled_image_buffer == NULL)
-			return FALSE;
+                if (upscaled_image_buffer == NULL) return FALSE;
 
-		// Upscale the bitmap to the game's internal resolution
-		for (size_t y = 0; y < height; ++y)
-		{
-			const unsigned char *src_row = &image_buffer[y * width * 4];
-			unsigned char *dst_row = &upscaled_image_buffer[y * magnification_scaled * width * magnification_scaled * 4];
+                // Upscale the bitmap to the game's internal resolution
+                for (size_t y = 0; y < height; ++y) {
+                        const unsigned char *src_row =
+                            &image_buffer[y * width * 4];
+                        unsigned char *dst_row =
+                            &upscaled_image_buffer[y * magnification_scaled *
+                                                   width *
+                                                   magnification_scaled * 4];
 
-			const unsigned char *src_ptr = src_row;
-			unsigned char *dst_ptr = dst_row;
+                        const unsigned char *src_ptr = src_row;
+                        unsigned char *dst_ptr = dst_row;
 
-			for (size_t x = 0; x < width; ++x)
-			{
-				for (int i = 0; i < magnification_scaled; ++i)
-				{
-					*dst_ptr++ = src_ptr[0];
-					*dst_ptr++ = src_ptr[1];
-					*dst_ptr++ = src_ptr[2];
-					*dst_ptr++ = src_ptr[3];
-				}
+                        for (size_t x = 0; x < width; ++x) {
+                          for (int i = 0; i < magnification_scaled; ++i) {
+                            *dst_ptr++ = src_ptr[0];
+                            *dst_ptr++ = src_ptr[1];
+                            *dst_ptr++ = src_ptr[2];
+                            *dst_ptr++ = src_ptr[3];
+                          }
 
-				src_ptr += 4;
-			}
+                          src_ptr += 4;
+                        }
 
-			for (int i = 1; i < magnification_scaled; ++i)
-				memcpy(dst_row + i * width * magnification_scaled * 4, dst_row, width * magnification_scaled * 4);
-		}
+                        for (int i = 1; i < magnification_scaled; ++i)
+                          memcpy(dst_row + i * width * magnification_scaled * 4,
+                                 dst_row, width * magnification_scaled * 4);
+                }
 
-		RenderBackend_UploadSurface(surf[surf_no], upscaled_image_buffer, width * magnification_scaled, height * magnification_scaled);
+                RenderBackend_UploadSurface(surf[surf_no],
+                                            upscaled_image_buffer,
+                                            width * magnification_scaled,
+                                            height * magnification_scaled);
 
-		free(upscaled_image_buffer);
-	}
+                free(upscaled_image_buffer);
+        }
 
-	return TRUE;
+        return TRUE;
 }
 
 // TODO - Inaccurate stack frame
-BOOL MakeSurface_Resource(const char *name, SurfaceID surf_no)
-{
-	if (surf_no >= SURFACE_ID_MAX)
-		return FALSE;
+BOOL MakeSurface_Resource(const char *name, SurfaceID surf_no) {
+        if (surf_no >= SURFACE_ID_MAX) return FALSE;
 
-	if (surf[surf_no] != NULL)
-		return FALSE;
+        if (surf[surf_no] != NULL) return FALSE;
 
-	size_t size;
-	const unsigned char *data = FindResource(name, "BITMAP", &size);
+        size_t size;
+        const unsigned char *data = FindResource(name, "BITMAP", &size);
 
-	if (data == NULL)
-		return FALSE;
+        if (data == NULL) return FALSE;
 
-	size_t width, height;
-	unsigned char *image_buffer = DecodeBitmap(data, size, &width, &height, 4);
+        size_t width, height;
+        unsigned char *image_buffer =
+            DecodeBitmap(data, size, &width, &height, 4);
 
-	if (image_buffer == NULL)
-		return FALSE;
+        if (image_buffer == NULL) return FALSE;
 
-	surf[surf_no] = RenderBackend_CreateSurface(width * mag / SPRITE_SCALE, height * mag / SPRITE_SCALE, false);
+        surf[surf_no] = RenderBackend_CreateSurface(
+            width * gDisplayMode.mag / gDisplayMode.scale, height * gDisplayMode.mag / gDisplayMode.scale,
+            false);
 
-	if (surf[surf_no] == NULL)
-	{
-		FreeBitmap(image_buffer);
-		return FALSE;
-	}
+        if (surf[surf_no] == NULL) {
+                FreeBitmap(image_buffer);
+                return FALSE;
+        }
 
-	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no))
-	{
-		RenderBackend_FreeSurface(surf[surf_no]);
-		FreeBitmap(image_buffer);
-		return FALSE;
-	}
+        if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no)) {
+                RenderBackend_FreeSurface(surf[surf_no]);
+                FreeBitmap(image_buffer);
+                return FALSE;
+        }
 
-	FreeBitmap(image_buffer);
+        FreeBitmap(image_buffer);
 
-	surface_metadata[surf_no].type = SURFACE_SOURCE_RESOURCE;
-	surface_metadata[surf_no].width = width / SPRITE_SCALE;
-	surface_metadata[surf_no].height = height / SPRITE_SCALE;
-	surface_metadata[surf_no].bSystem = FALSE;
-	strcpy(surface_metadata[surf_no].name, name);
+        surface_metadata[surf_no].type = SURFACE_SOURCE_RESOURCE;
+        surface_metadata[surf_no].width = width / gDisplayMode.scale;
+        surface_metadata[surf_no].height = height / gDisplayMode.scale;
+        surface_metadata[surf_no].bSystem = FALSE;
+        strcpy(surface_metadata[surf_no].name, name);
 
-	return TRUE;
+        return TRUE;
 }
 
 // TODO - Inaccurate stack frame
@@ -324,54 +336,53 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 
 	if (surf[surf_no] != NULL)
 	{
-		ErrorLog("existing", surf_no);
-		return FALSE;
-	}
+                ErrorLog("existing", surf_no);
+                return FALSE;
+        }
 
-	size_t width, height;
-	unsigned char *image_buffer = NULL;
+        size_t width, height;
+        unsigned char *image_buffer = NULL;
 
-	const char *file_extensions[] = {"pbm", "bmp", "png"};
-	for (size_t i = 0; i < sizeof(file_extensions) / sizeof(file_extensions[0]); ++i)
-	{
-		path = gDataPath + '/' + name + '.' + file_extensions[i];
+        const char *file_extensions[] = {"pbm", "bmp", "png"};
+        for (size_t i = 0;
+             i < sizeof(file_extensions) / sizeof(file_extensions[0]); ++i) {
+                path = gDataPath + '/' + name + '.' + file_extensions[i];
 
-		image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height, 4);
+                image_buffer =
+                    DecodeBitmapFromFile(path.c_str(), &width, &height, 4);
 
-		if (image_buffer != NULL)
-			break;
-	}
+                if (image_buffer != NULL) break;
+        }
 
-	if (image_buffer == NULL)
-	{
-		ErrorLog(path.c_str(), 1);
-		return FALSE;
-	}
+        if (image_buffer == NULL) {
+                ErrorLog(path.c_str(), 1);
+                return FALSE;
+        }
 
-	surf[surf_no] = RenderBackend_CreateSurface(width * mag / SPRITE_SCALE, height * mag / SPRITE_SCALE, false);
+        surf[surf_no] = RenderBackend_CreateSurface(
+            width * gDisplayMode.mag / gDisplayMode.scale, height * gDisplayMode.mag / gDisplayMode.scale,
+            false);
 
-	if (surf[surf_no] == NULL)
-	{
-		FreeBitmap(image_buffer);
-		return FALSE;
-	}
+        if (surf[surf_no] == NULL) {
+                FreeBitmap(image_buffer);
+                return FALSE;
+        }
 
-	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no))
-	{
-		RenderBackend_FreeSurface(surf[surf_no]);
-		FreeBitmap(image_buffer);
-		return FALSE;
-	}
+        if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no)) {
+                RenderBackend_FreeSurface(surf[surf_no]);
+                FreeBitmap(image_buffer);
+                return FALSE;
+        }
 
-	FreeBitmap(image_buffer);
+        FreeBitmap(image_buffer);
 
-	surface_metadata[surf_no].type = SURFACE_SOURCE_FILE;
-	surface_metadata[surf_no].width = width / SPRITE_SCALE;
-	surface_metadata[surf_no].height = height / SPRITE_SCALE;
-	surface_metadata[surf_no].bSystem = FALSE;
-	strcpy(surface_metadata[surf_no].name, name);
+        surface_metadata[surf_no].type = SURFACE_SOURCE_FILE;
+        surface_metadata[surf_no].width = width / gDisplayMode.scale;
+        surface_metadata[surf_no].height = height / gDisplayMode.scale;
+        surface_metadata[surf_no].bSystem = FALSE;
+        strcpy(surface_metadata[surf_no].name, name);
 
-	return TRUE;
+        return TRUE;
 }
 
 // TODO - Inaccurate stack frame
@@ -463,55 +474,55 @@ BOOL MakeSurface_Generic(int bxsize, int bysize, SurfaceID surf_no, BOOL bSystem
 #else
 	if (surf_no > SURFACE_ID_MAX)	// OOPS (should be '>=')
 #endif
-		return FALSE;
+                return FALSE;
 
-	if (surf[surf_no] != NULL)
-		return FALSE;
+        if (surf[surf_no] != NULL) return FALSE;
 
-	surf[surf_no] = RenderBackend_CreateSurface(bxsize * mag, bysize * mag, bTarget);
+        surf[surf_no] =
+            RenderBackend_CreateSurface(bxsize * gDisplayMode.mag, bysize * gDisplayMode.mag, bTarget);
 
-	if (surf[surf_no] == NULL)
-		return FALSE;
+        if (surf[surf_no] == NULL) return FALSE;
 
-	surface_metadata[surf_no].type = SURFACE_SOURCE_NONE;
-	surface_metadata[surf_no].width = bxsize;
-	surface_metadata[surf_no].height = bysize;
+        surface_metadata[surf_no].type = SURFACE_SOURCE_NONE;
+        surface_metadata[surf_no].width = bxsize;
+        surface_metadata[surf_no].height = bysize;
 
-	if (bSystem)
-		surface_metadata[surf_no].bSystem = TRUE;
-	else
-		surface_metadata[surf_no].bSystem = FALSE;
+        if (bSystem)
+                surface_metadata[surf_no].bSystem = TRUE;
+        else
+                surface_metadata[surf_no].bSystem = FALSE;
 
-	strcpy(surface_metadata[surf_no].name, "generic");
+        strcpy(surface_metadata[surf_no].name, "generic");
 
-	return TRUE;
+        return TRUE;
 }
 
-void BackupSurface(SurfaceID surf_no, const RECT *rect)
-{
-	if (surf[surf_no] == NULL)
-		return;
-
-	static RenderBackend_Rect rcSet;	// TODO - Not the original variable name
-	rcSet.left = rect->left * mag;
-	rcSet.top = rect->top * mag;
-	rcSet.right = rect->right * mag;
-	rcSet.bottom = rect->bottom * mag;
-
-	// Do not draw invalid RECTs
-	if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top)
-		return;
-
-	RenderBackend_Blit(framebuffer, &rcSet, surf[surf_no], rcSet.left, rcSet.top, FALSE);
+static void ScaleRect(const RECT *rect, RenderBackend_Rect *scaled_rect) {
+        scaled_rect->left = rect->left * gDisplayMode.mag/* - rect->left % gDisplayMode.mag*/;
+        scaled_rect->top = rect->top * gDisplayMode.mag/* - rect->top % gDisplayMode.mag*/;
+        scaled_rect->right = rect->right * gDisplayMode.mag/* - rect->right % gDisplayMode.mag*/;
+        scaled_rect->bottom = rect->bottom * gDisplayMode.mag/* - rect->bottom % gDisplayMode.mag*/;
 }
 
-static void ScaleRect(const RECT *rect, RenderBackend_Rect *scaled_rect)
-{
-	scaled_rect->left = rect->left * mag;
-	scaled_rect->top = rect->top * mag;
-	scaled_rect->right = rect->right * mag;
-	scaled_rect->bottom = rect->bottom * mag;
+void BackupSurface(SurfaceID surf_no, const RECT *rect) {
+        if (surf[surf_no] == NULL) return;
+
+        static RenderBackend_Rect
+            rcSet;  // TODO - Not the original variable name
+
+        ScaleRect(rect, &rcSet);
+//        rcSet.left = rect->left;
+//        rcSet.top = rect->top;
+//        rcSet.right = rect->right;// * gDisplayMode.mag;
+//        rcSet.bottom = rect->bottom;// * gDisplayMode.mag;
+
+        // Do not draw invalid RECTs
+        if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top) return;
+
+        RenderBackend_Blit(framebuffer, &rcSet, surf[surf_no], rcSet.left,
+                           rcSet.top, FALSE);
 }
+
 
 void PutBitmap3(const RECT *rcView, int x, int y, const RECT *rect, SurfaceID surf_no) // Transparency
 {
@@ -585,23 +596,22 @@ void PutBitmap4(const RECT *rcView, int x, int y, const RECT *rect, SurfaceID su
 	RenderBackend_Blit(surf[surf_no], &rcWork, framebuffer, x, y, FALSE);
 }
 
-void Surface2Surface(int x, int y, const RECT *rect, SurfaceID to, SurfaceID from)
-{
-	if (surf[to] == NULL || surf[from] == NULL)
-		return;
+void Surface2Surface(int x, int y, const RECT *rect, SurfaceID to,
+                     SurfaceID from) {
+        if (surf[to] == NULL || surf[from] == NULL) return;
 
-	static RenderBackend_Rect rcWork;
+        static RenderBackend_Rect rcWork;
 
-	rcWork.left = rect->left * mag;
-	rcWork.top = rect->top * mag;
-	rcWork.right = rect->right * mag;
-	rcWork.bottom = rect->bottom * mag;
+        rcWork.left = rect->left * gDisplayMode.mag;
+        rcWork.top = rect->top * gDisplayMode.mag;
+        rcWork.right = rect->right * gDisplayMode.mag;
+        rcWork.bottom = rect->bottom * gDisplayMode.mag;
 
-	// Do not draw invalid RECTs
-	if (rcWork.right <= rcWork.left || rcWork.bottom <= rcWork.top)
-		return;
+        // Do not draw invalid RECTs
+        if (rcWork.right <= rcWork.left || rcWork.bottom <= rcWork.top) return;
 
-	RenderBackend_Blit(surf[from], &rcWork, surf[to], x * mag, y * mag, TRUE);
+        RenderBackend_Blit(surf[from], &rcWork, surf[to], x * gDisplayMode.mag, y * gDisplayMode.mag,
+                           TRUE);
 }
 
 unsigned long GetCortBoxColor(unsigned long col)
@@ -610,48 +620,46 @@ unsigned long GetCortBoxColor(unsigned long col)
 	return col;
 }
 
-void CortBox(const RECT *rect, unsigned long col)
-{
-	static RenderBackend_Rect rcSet;	// TODO - Not the original variable name
-	rcSet.left = rect->left * mag;
-	rcSet.top = rect->top * mag;
-	rcSet.right = rect->right * mag;
-	rcSet.bottom = rect->bottom * mag;
+void CortBox(const RECT *rect, unsigned long col) {
+        static RenderBackend_Rect
+            rcSet;  // TODO - Not the original variable name
+        rcSet.left = rect->left * gDisplayMode.mag;
+        rcSet.top = rect->top * gDisplayMode.mag;
+        rcSet.right = rect->right * gDisplayMode.mag;
+        rcSet.bottom = rect->bottom * gDisplayMode.mag;
 
-	const unsigned char red = col & 0xFF;
-	const unsigned char green = (col >> 8) & 0xFF;
-	const unsigned char blue = (col >> 16) & 0xFF;
+        const unsigned char red = col & 0xFF;
+        const unsigned char green = (col >> 8) & 0xFF;
+        const unsigned char blue = (col >> 16) & 0xFF;
 
-	// Do not draw invalid RECTs
-	if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top)
-		return;
+        // Do not draw invalid RECTs
+        if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top) return;
 
-	RenderBackend_ColourFill(framebuffer, &rcSet, red, green, blue, 0xFF);
+        RenderBackend_ColourFill(framebuffer, &rcSet, red, green, blue, 0xFF);
 }
 
-void CortBox2(const RECT *rect, unsigned long col, SurfaceID surf_no)
-{
-	if (surf[surf_no] == NULL)
-		return;
+void CortBox2(const RECT *rect, unsigned long col, SurfaceID surf_no) {
+        if (surf[surf_no] == NULL) return;
 
-	static RenderBackend_Rect rcSet;	// TODO - Not the original variable name
-	rcSet.left = rect->left * mag;
-	rcSet.top = rect->top * mag;
-	rcSet.right = rect->right * mag;
-	rcSet.bottom = rect->bottom * mag;
+        static RenderBackend_Rect
+            rcSet;  // TODO - Not the original variable name
+        rcSet.left = rect->left * gDisplayMode.mag;
+        rcSet.top = rect->top * gDisplayMode.mag;
+        rcSet.right = rect->right * gDisplayMode.mag;
+        rcSet.bottom = rect->bottom * gDisplayMode.mag;
 
-	surface_metadata[surf_no].type = SURFACE_SOURCE_NONE;
+        surface_metadata[surf_no].type = SURFACE_SOURCE_NONE;
 
-	const unsigned char red = col & 0xFF;
-	const unsigned char green = (col >> 8) & 0xFF;
-	const unsigned char blue = (col >> 16) & 0xFF;
-	const unsigned char alpha = (col >> 24) & 0xFF;
+        const unsigned char red = col & 0xFF;
+        const unsigned char green = (col >> 8) & 0xFF;
+        const unsigned char blue = (col >> 16) & 0xFF;
+        const unsigned char alpha = (col >> 24) & 0xFF;
 
-	// Do not draw invalid RECTs
-	if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top)
-		return;
+        // Do not draw invalid RECTs
+        if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top) return;
 
-	RenderBackend_ColourFill(surf[surf_no], &rcSet, red, green, blue, alpha);
+        RenderBackend_ColourFill(surf[surf_no], &rcSet, red, green, blue,
+                                 alpha);
 }
 
 // Dummied-out log function
@@ -681,7 +689,7 @@ int RestoreSurfaces(void)
 	int surfaces_regenerated = 0;
 
 	if (framebuffer == NULL)
-		return surfaces_regenerated;
+                return surfaces_regenerated;
 
 	if (RenderBackend_IsSurfaceLost(framebuffer))
 	{
@@ -728,18 +736,15 @@ int RestoreSurfaces(void)
 	return surfaces_regenerated;
 }
 
-int SubpixelToScreenCoord(int coord)
-{
-	if (gbSmoothScrolling)
-		return (coord * mag) / 0x200;
-	else
-		return (coord / (0x200 / SPRITE_SCALE)) * (mag / SPRITE_SCALE);
+int SubpixelToScreenCoord(int coord) {
+        if (gbSmoothScrolling)
+                return (coord * gDisplayMode.mag) / 0x200;
+        else
+                return (coord / (0x200 / gDisplayMode.scale)) *
+                       (gDisplayMode.mag / gDisplayMode.scale);
 }
 
-int PixelToScreenCoord(int coord)
-{
-	return coord * mag;
-}
+int PixelToScreenCoord(int coord) { return coord * gDisplayMode.mag; }
 
 // TODO - Inaccurate stack frame
 void InitTextObject(const char *name)
@@ -767,7 +772,7 @@ void InitTextObject(const char *name)
 	// around the broken spacing.
 
 #ifdef JAPANESE
-	if (mag == 2)
+        if (gDisplayMode.mag == 2)
 	{
 		// Special-case 2 to use a size more
 		// likely to have embedded bitmaps
@@ -782,21 +787,23 @@ void InitTextObject(const char *name)
 
 	bool antialiasing = false;
 #else
-	font_height = 10;
-	font_width = 5;
+        font_height = 10;
+        font_width = 5;
 
-	bool antialiasing = mag != 1;	// The 1x font looks better without antialiasing
+        bool antialiasing =
+            gDisplayMode.mag != 1;  // The 1x font looks better without antialiasing
 #endif
 
 #ifdef FREETYPE_FONTS
-	std::string path = gDataPath + "/Font/font";
+        std::string path = gDataPath + "/Font/font";
 
-	font = LoadFreeTypeFont(path.c_str(), font_width * mag, font_height * mag, antialiasing);
+        gFont = LoadFreeTypeFont(path.c_str(), font_width * gDisplayMode.mag,
+                                font_height * gDisplayMode.mag, antialiasing);
 #else
 	std::string bitmap_path;
 	std::string metadata_path;
 
-	switch (mag)
+        switch (gDisplayMode.mag)
 	{
 		case 1:
 			bitmap_path = gDataPath + "/Font/font_bitmap_6x12.png";
@@ -815,20 +822,18 @@ void InitTextObject(const char *name)
 #endif
 }
 
-void PutText(int x, int y, const char *text, unsigned long color)
-{
-	DrawText(font, framebuffer, x * mag, y * mag, color, text);
+void PutText(int x, int y, const char *text, unsigned long color) {
+        DrawText(gFont, framebuffer, x * gDisplayMode.mag, y * gDisplayMode.mag, color, text);
 }
 
-void PutText2(int x, int y, const char *text, unsigned long color, SurfaceID surf_no)
-{
-	if (surf[surf_no] == NULL)
-		return;
+void PutText2(int x, int y, const char *text, unsigned long color,
+              SurfaceID surf_no) {
+        if (surf[surf_no] == NULL) return;
 
-	DrawText(font, surf[surf_no], x * mag, y * mag, color, text);
+        DrawText(gFont, surf[surf_no], x * gDisplayMode.mag, y * gDisplayMode.mag, color, text);
 }
 
 void EndTextObject(void)
 {
-	UnloadFont(font);
+        UnloadFont(gFont);
 }

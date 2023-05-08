@@ -21,7 +21,9 @@
 #include "Sound.h"
 #include "Stage.h"
 
-#define MAX_OPTIONS ((WINDOW_HEIGHT / 20) - 4)	// The maximum number of options we can fit on-screen at once
+#define MAX_OPTIONS             \
+  ((gDisplayMode.height / 20) - \
+   4)  // The maximum number of options we can fit on-screen at once
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -419,20 +421,20 @@ static int EnterOptionsMenu(OptionsMenu *options_menu, size_t selected_option)
 
 		const size_t visible_options = MIN(MAX_OPTIONS, options_menu->total_options);
 
-		int y = (WINDOW_HEIGHT / 2) - ((visible_options * 20) / 2) - (40 / 2);
+		int y = (gDisplayMode.height / 2) - ((visible_options * 20) / 2) - (40 / 2);
 
 		// Draw title
-		PutTextCentred(WINDOW_WIDTH / 2, y, options_menu->title, RGB(0xFF, 0xFF, 0xFF));
+		PutTextCentred(gDisplayMode.width / 2, y, options_menu->title, RGB(0xFF, 0xFF, 0xFF));
 
 		// Draw subtitle
 		if (options_menu->subtitle != NULL)
-			PutTextCentred(WINDOW_WIDTH / 2, y + 14, options_menu->subtitle, RGB(0xFF, 0xFF, 0xFF));
+			PutTextCentred(gDisplayMode.width / 2, y + 14, options_menu->subtitle, RGB(0xFF, 0xFF, 0xFF));
 
 		y += 40;
 
 		for (size_t i = scroll; i < scroll + visible_options; ++i)
 		{
-			const int x = (WINDOW_WIDTH / 2) + options_menu->x_offset;
+			const int x = (gDisplayMode.width / 2) + options_menu->x_offset;
 
 			// Draw Quote next to the selected option
 			if (i == selected_option)
@@ -557,11 +559,11 @@ static int Callback_ControlsKeyboard_Rebind(OptionsMenu *parent_menu, size_t thi
 				CortBox(&grcFull, 0x000000);
 
 				const char *string = "Press a key to bind to this action:";
-				PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 10, string, RGB(0xFF, 0xFF, 0xFF));
-				PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 10, parent_menu->options[this_option].name, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2 - 10, string, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2 + 10, parent_menu->options[this_option].name, RGB(0xFF, 0xFF, 0xFF));
 
 				timeout_string[0] = '0' + (timeout / 60) + 1;
-				PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 60, timeout_string, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2 + 60, timeout_string, RGB(0xFF, 0xFF, 0xFF));
 
 				PutFramePerSecound();
 
@@ -673,11 +675,11 @@ static int Callback_ControlsController_Rebind(OptionsMenu *parent_menu, size_t t
 				CortBox(&grcFull, 0x000000);
 
 				const char *string = "Press a button to bind to this action:";
-				PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 10, string, RGB(0xFF, 0xFF, 0xFF));
-				PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 10, parent_menu->options[this_option].name, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2 - 10, string, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2 + 10, parent_menu->options[this_option].name, RGB(0xFF, 0xFF, 0xFF));
 
 				timeout_string[0] = '0' + (timeout / 60) + 1;
-				PutTextCentred(WINDOW_WIDTH, WINDOW_HEIGHT / 2 + 60, timeout_string, RGB(0xFF, 0xFF, 0xFF));
+				PutTextCentred(gDisplayMode.width, gDisplayMode.height / 2 + 60, timeout_string, RGB(0xFF, 0xFF, 0xFF));
 
 				PutFramePerSecound();
 
@@ -1047,7 +1049,7 @@ static int Callback_Options(OptionsMenu *parent_menu, size_t this_option, Callba
 	{
 		// Draw 'saving' prompt
 		CortBox(&grcFull, 0x000000);
-		PutTextCentred(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, "Saving...", RGB(0xFF, 0xFF, 0xFF));
+		PutTextCentred(gDisplayMode.width / 2, gDisplayMode.height / 2, "Saving...", RGB(0xFF, 0xFF, 0xFF));
 		PutFramePerSecound();
 		if (!Flip_SystemTask())
 			return CALLBACK_EXIT;

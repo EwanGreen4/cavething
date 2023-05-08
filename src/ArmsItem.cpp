@@ -331,11 +331,12 @@ void PutCampObject(void)
 	/// Rect for the "Lv" text!
 	RECT rcLv = {80, 80, 96, 88};
 
-	/// Final rect drawn on the screen
-	RECT rcView = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        /// Final rect drawn on the screen
+        RECT rcView = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
-	/// Cursor rect array for weapons, element [1] being for when the cursor is flashing
-	RECT rcCur1[2] = {{0, 88, 40, 128}, {40, 88, 80, 128}};
+        /// Cursor rect array for weapons, element [1] being for when the cursor
+        /// is flashing
+        RECT rcCur1[2] = {{0, 88, 40, 128}, {40, 88, 80, 128}};
 
 	/// Cursor rect array for items, element [1] being for when the cursor is flashing
 	RECT rcCur2[2] = {{80, 88, 112, 104}, {80, 104, 112, 120}};
@@ -346,30 +347,50 @@ void PutCampObject(void)
 	RECT rcBoxBody = {0, 8, 244, 16};
 	RECT rcBoxBottom = {0, 16, 244, 24};
 
-	// Draw box
-	PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 112), &rcBoxTop, SURFACE_ID_TEXT_BOX);
-	for (i = 1; i < 18; ++i)
-		PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord(((WINDOW_HEIGHT / 2) - 120) + ((i + 1) * 8)), &rcBoxBody, SURFACE_ID_TEXT_BOX);
-	PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord(((WINDOW_HEIGHT / 2) - 120) + ((i + 1) * 8)), &rcBoxBottom, SURFACE_ID_TEXT_BOX);
+        // Draw box
+        PutBitmap3(&rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 122),
+                   PixelToScreenCoord((gDisplayMode.height / 2) - 112),
+                   &rcBoxTop, SURFACE_ID_TEXT_BOX);
+        for (i = 1; i < 18; ++i)
+                PutBitmap3(
+                    &rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 122),
+                    PixelToScreenCoord(((gDisplayMode.height / 2) - 120) +
+                                       ((i + 1) * 8)),
+                    &rcBoxBody, SURFACE_ID_TEXT_BOX);
+        PutBitmap3(&rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 122),
+                   PixelToScreenCoord(((gDisplayMode.height / 2) - 120) +
+                                      ((i + 1) * 8)),
+                   &rcBoxBottom, SURFACE_ID_TEXT_BOX);
 
-	// Move titles
-	if (gCampTitleY > (WINDOW_HEIGHT / 2) - 104)
-		--gCampTitleY;
+        // Move titles
+        if (gCampTitleY > (gDisplayMode.height / 2) - 104) --gCampTitleY;
 
-	// Draw titles
-	PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 112), PixelToScreenCoord(gCampTitleY), &rcTitle1, SURFACE_ID_TEXT_BOX);
-	PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 112), PixelToScreenCoord(gCampTitleY + 52), &rcTitle2, SURFACE_ID_TEXT_BOX);
+        // Draw titles
+        PutBitmap3(&rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 112),
+                   PixelToScreenCoord(gCampTitleY), &rcTitle1,
+                   SURFACE_ID_TEXT_BOX);
+        PutBitmap3(&rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 112),
+                   PixelToScreenCoord(gCampTitleY + 52), &rcTitle2,
+                   SURFACE_ID_TEXT_BOX);
 
-	// Draw arms cursor
-	++flash;
+        // Draw arms cursor
+        ++flash;
 
-	if (gCampActive == FALSE)
-		PutBitmap3(&rcView, PixelToScreenCoord((gSelectedArms * 40) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 96), &rcCur1[(flash / 2) % 2], SURFACE_ID_TEXT_BOX);
-	else
-		PutBitmap3(&rcView, PixelToScreenCoord((gSelectedArms * 40) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 96), &rcCur1[1], SURFACE_ID_TEXT_BOX);
+        if (gCampActive == FALSE)
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord((gSelectedArms * 40) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord((gDisplayMode.height / 2) - 96),
+                           &rcCur1[(flash / 2) % 2], SURFACE_ID_TEXT_BOX);
+        else
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord((gSelectedArms * 40) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord((gDisplayMode.height / 2) - 96),
+                           &rcCur1[1], SURFACE_ID_TEXT_BOX);
 
-	// Draw weapons
-	for (i = 0; i < ARMS_MAX; ++i)
+        // Draw weapons
+        for (i = 0; i < ARMS_MAX; ++i)
 	{
 		if (gArmsData[i].code == 0)
 			break;	// Invalid weapon
@@ -380,62 +401,102 @@ void PutCampObject(void)
 		rcArms.top = ((gArmsData[i].code) / 16) * 16;
 		rcArms.bottom = rcArms.top + 16;
 
-		// Draw the icon, slash and "Lv"
-		PutBitmap3(&rcView, PixelToScreenCoord((i * 40) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 96), &rcArms, SURFACE_ID_ARMS_IMAGE);
-		PutBitmap3(&rcView, PixelToScreenCoord((i * 40) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 64), &rcPer, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&rcView, PixelToScreenCoord((i * 40) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 80), &rcLv, SURFACE_ID_TEXT_BOX);
-		PutNumber4((i * 40) + (WINDOW_WIDTH / 2) - 112, (WINDOW_HEIGHT / 2) - 80, gArmsData[i].level, FALSE);
+                // Draw the icon, slash and "Lv"
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord((i * 40) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord((gDisplayMode.height / 2) - 96),
+                           &rcArms, SURFACE_ID_ARMS_IMAGE);
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord((i * 40) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord((gDisplayMode.height / 2) - 64),
+                           &rcPer, SURFACE_ID_TEXT_BOX);
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord((i * 40) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord((gDisplayMode.height / 2) - 80),
+                           &rcLv, SURFACE_ID_TEXT_BOX);
+                PutNumber4((i * 40) + (gDisplayMode.width / 2) - 112,
+                           (gDisplayMode.height / 2) - 80, gArmsData[i].level,
+                           FALSE);
 
-		// Draw ammo
-		if (gArmsData[i].max_num)
-		{
-			PutNumber4((i * 40) + (WINDOW_WIDTH / 2) - 112, (WINDOW_HEIGHT / 2) - 72, gArmsData[i].num, FALSE);
-			PutNumber4((i * 40) + (WINDOW_WIDTH / 2) - 112, (WINDOW_HEIGHT / 2) - 64, gArmsData[i].max_num, FALSE);
-		}
-		else
-		{
-			// Weapon doesn't use ammunition
-			PutBitmap3(&rcView, PixelToScreenCoord((i * 40) + (WINDOW_WIDTH - 192) / 2), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 72), &rcNone, SURFACE_ID_TEXT_BOX);
-			PutBitmap3(&rcView, PixelToScreenCoord((i * 40) + (WINDOW_WIDTH - 192) / 2), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 64), &rcNone, SURFACE_ID_TEXT_BOX);
-		}
-	}
+                // Draw ammo
+                if (gArmsData[i].max_num) {
+                        PutNumber4((i * 40) + (gDisplayMode.width / 2) - 112,
+                                   (gDisplayMode.height / 2) - 72,
+                                   gArmsData[i].num, FALSE);
+                        PutNumber4((i * 40) + (gDisplayMode.width / 2) - 112,
+                                   (gDisplayMode.height / 2) - 64,
+                                   gArmsData[i].max_num, FALSE);
+                } else {
+                        // Weapon doesn't use ammunition
+                        PutBitmap3(
+                            &rcView,
+                            PixelToScreenCoord((i * 40) +
+                                               (gDisplayMode.width - 192) / 2),
+                            PixelToScreenCoord((gDisplayMode.height / 2) - 72),
+                            &rcNone, SURFACE_ID_TEXT_BOX);
+                        PutBitmap3(
+                            &rcView,
+                            PixelToScreenCoord((i * 40) +
+                                               (gDisplayMode.width - 192) / 2),
+                            PixelToScreenCoord((gDisplayMode.height / 2) - 64),
+                            &rcNone, SURFACE_ID_TEXT_BOX);
+                }
+        }
 
 	// Draw items cursor
-	if (gCampActive == TRUE)
-		PutBitmap3(&rcView, PixelToScreenCoord(((gSelectedItem % 6) * 32) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord(((gSelectedItem / 6) * 16) + (WINDOW_HEIGHT / 2) - 44), &rcCur2[flash / 2 % 2], SURFACE_ID_TEXT_BOX);
-	else
-		PutBitmap3(&rcView, PixelToScreenCoord(((gSelectedItem % 6) * 32) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord(((gSelectedItem / 6) * 16) + (WINDOW_HEIGHT / 2) - 44), &rcCur2[1], SURFACE_ID_TEXT_BOX);
+        if (gCampActive == TRUE)
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord(((gSelectedItem % 6) * 32) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord(((gSelectedItem / 6) * 16) +
+                                              (gDisplayMode.height / 2) - 44),
+                           &rcCur2[flash / 2 % 2], SURFACE_ID_TEXT_BOX);
+        else
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord(((gSelectedItem % 6) * 32) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord(((gSelectedItem / 6) * 16) +
+                                              (gDisplayMode.height / 2) - 44),
+                           &rcCur2[1], SURFACE_ID_TEXT_BOX);
 
-	for (i = 0; i < ITEM_MAX; ++i)
-	{
-		if (gItemData[i].code == 0)
+        for (i = 0; i < ITEM_MAX; ++i) {
+                if (gItemData[i].code == 0)
 			break;	// Invalid item
 
 		// Get rect for next item
 		rcItem.left = (gItemData[i].code % 8) * 32;
 		rcItem.right = rcItem.left + 32;
 		rcItem.top = (gItemData[i].code / 8) * 16;
-		rcItem.bottom = rcItem.top + 16;
+                rcItem.bottom = rcItem.top + 16;
 
-		PutBitmap3(&rcView, PixelToScreenCoord(((i % 6) * 32) + (WINDOW_WIDTH / 2) - 112), PixelToScreenCoord(((i / 6) * 16) + (WINDOW_HEIGHT / 2) - 44), &rcItem, SURFACE_ID_ITEM_IMAGE);
-	}
+                PutBitmap3(&rcView,
+                           PixelToScreenCoord(((i % 6) * 32) +
+                                              (gDisplayMode.width / 2) - 112),
+                           PixelToScreenCoord(((i / 6) * 16) +
+                                              (gDisplayMode.height / 2) - 44),
+                           &rcItem, SURFACE_ID_ITEM_IMAGE);
+        }
 }
 
 int CampLoop(void)
 {
-	std::string old_script_path;
+        std::string old_script_path;
 
-	RECT rcView = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+        RECT rcView = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
-	// Save the current script path (to restore it when we get out of the inventory)
-	old_script_path = GetTextScriptPath();
+        // Save the current script path (to restore it when we get out of the
+        // inventory)
+        old_script_path = GetTextScriptPath();
 
 	// Load the inventory script
 	LoadTextScript2("ArmsItem.tsc");
 
-	gCampTitleY = (WINDOW_HEIGHT / 2) - 96;
+        gCampTitleY = (gDisplayMode.height / 2) - 96;
 
-	// Put the cursor on the first weapon
+        // Put the cursor on the first weapon
 	gCampActive = FALSE;
 	gSelectedItem = 0;
 

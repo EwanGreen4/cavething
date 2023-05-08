@@ -125,10 +125,10 @@ int MiniMapLoop(void)
 
 		PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 
-		rcView.left = (WINDOW_WIDTH / 2) - (((gMap.width * f) / 8) / 2);
-		rcView.right = (WINDOW_WIDTH / 2) + (((gMap.width * f) / 8) / 2);
-		rcView.top = (WINDOW_HEIGHT / 2) - (((gMap.length * f) / 8) / 2);
-		rcView.bottom = (WINDOW_HEIGHT / 2) + (((gMap.length * f) / 8) / 2);
+		rcView.left = (gDisplayMode.width / 2) - (((gMap.width * f) / 8) / 2);
+		rcView.right = (gDisplayMode.width / 2) + (((gMap.width * f) / 8) / 2);
+		rcView.top = (gDisplayMode.height / 2) - (((gMap.length * f) / 8) / 2);
+		rcView.bottom = (gDisplayMode.height / 2) + (((gMap.length * f) / 8) / 2);
 
 		PutMapName(TRUE);
 		CortBox(&rcView, 0);
@@ -240,10 +240,10 @@ int MiniMapLoop(void)
 
 		PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 
-		rcView.left = (WINDOW_WIDTH / 2) - (((gMap.width * f) / 8) / 2);
-		rcView.right = (WINDOW_WIDTH / 2) + (((gMap.width * f) / 8) / 2);
-		rcView.top = (WINDOW_HEIGHT / 2) - (((gMap.length * f) / 8) / 2);
-		rcView.bottom = (WINDOW_HEIGHT / 2) + (((gMap.length * f) / 8) / 2);
+		rcView.left = (gDisplayMode.width / 2) - (((gMap.width * f) / 8) / 2);
+		rcView.right = (gDisplayMode.width / 2) + (((gMap.width * f) / 8) / 2);
+		rcView.top = (gDisplayMode.height / 2) - (((gMap.length * f) / 8) / 2);
+		rcView.bottom = (gDisplayMode.height / 2) + (((gMap.length * f) / 8) / 2);
 
 		PutMapName(TRUE);
 		CortBox(&rcView, 0);

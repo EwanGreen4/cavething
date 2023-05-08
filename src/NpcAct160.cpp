@@ -1094,7 +1094,7 @@ void ActNpc173(NPCHAR *npc)
 		{72, 152, 96, 176},
 	};
 
-	if (npc->x > gMC.x + (((WINDOW_WIDTH / 2) + 160) * 0x200) || npc->x < gMC.x - (((WINDOW_WIDTH / 2) + 160) * 0x200) || npc->y > gMC.y + (((WINDOW_HEIGHT / 2) + 120) * 0x200) || npc->y < gMC.y - (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+	if (npc->x > gMC.x + (((gDisplayMode.width / 2) + 160) * 0x200) || npc->x < gMC.x - (((gDisplayMode.width / 2) + 160) * 0x200) || npc->y > gMC.y + (((gDisplayMode.height / 2) + 120) * 0x200) || npc->y < gMC.y - (((gDisplayMode.height / 2) + 120) * 0x200))
 		return;
 
 	switch (npc->act_no)

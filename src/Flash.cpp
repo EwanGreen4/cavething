@@ -61,28 +61,28 @@ void ActFlash_Explosion(int flx, int fly)
 				left = 0;
 			if (top < 0)
 				top = 0;
-			if (right > WINDOW_WIDTH)
-				right = WINDOW_WIDTH;
-			if (bottom > WINDOW_HEIGHT)
-				bottom = WINDOW_HEIGHT;
+			if (right > gDisplayMode.width)
+				right = gDisplayMode.width;
+			if (bottom > gDisplayMode.height)
+				bottom = gDisplayMode.height;
 
 			// The tall part of the explosion
 			flash.rect1.left = left;
 			flash.rect1.right = right;
 			flash.rect1.top = 0;
-			flash.rect1.bottom = WINDOW_HEIGHT;
+			flash.rect1.bottom = gDisplayMode.height;
 
 			// The wide part of the explosion
 			flash.rect2.left = 0;
-			flash.rect2.right = WINDOW_WIDTH;
+			flash.rect2.right = gDisplayMode.width;
 			flash.rect2.top = top;
 			flash.rect2.bottom = bottom;
 
-			if (flash.width > WINDOW_WIDTH * 0x200 * 4) // I guess in theory this means that the explosion would take longer in widescreen...
+			if (flash.width > gDisplayMode.width * 0x200 * 4) // I guess in theory this means that the explosion would take longer in widescreen...
 			{
 				flash.act_no = 1;
 				flash.cnt = 0;
-				flash.width = WINDOW_HEIGHT * 0x200;
+				flash.width = gDisplayMode.height * 0x200;
 			}
 
 			break;
@@ -98,8 +98,8 @@ void ActFlash_Explosion(int flx, int fly)
 				top = 0;
 
 			bottom = (flash.y - fly + flash.width) / 0x200;
-			if (bottom > WINDOW_HEIGHT)
-				bottom = WINDOW_HEIGHT;
+			if (bottom > gDisplayMode.height)
+				bottom = gDisplayMode.height;
 
 			// The tall part of the explosion
 			flash.rect1.left = 0;
@@ -111,7 +111,7 @@ void ActFlash_Explosion(int flx, int fly)
 			flash.rect2.top = top;
 			flash.rect2.bottom = bottom;
 			flash.rect2.left = 0;
-			flash.rect2.right = WINDOW_WIDTH;
+			flash.rect2.right = gDisplayMode.width;
 
 			break;
 	}
@@ -129,9 +129,9 @@ void ActFlash_Flash(void)
 	if (flash.cnt / 2 % 2)
 	{
 		flash.rect2.top = 0;
-		flash.rect2.bottom = WINDOW_HEIGHT;
+		flash.rect2.bottom = gDisplayMode.height;
 		flash.rect2.left = 0;
-		flash.rect2.right = WINDOW_WIDTH;
+		flash.rect2.right = gDisplayMode.width;
 	}
 	else
 	{

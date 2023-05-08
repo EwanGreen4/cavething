@@ -243,9 +243,9 @@ BOOL LoadGenericData(void)
 	if (bError)
 		return FALSE;
 
-	MakeSurface_Generic(WINDOW_WIDTH, WINDOW_HEIGHT, SURFACE_ID_SCREEN_GRAB, TRUE, TRUE);
+	MakeSurface_Generic(gDisplayMode.width, gDisplayMode.height, SURFACE_ID_SCREEN_GRAB, TRUE, TRUE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_BACKGROUND, FALSE, FALSE);
-	MakeSurface_Generic(WINDOW_WIDTH, WINDOW_HEIGHT, SURFACE_ID_MAP, TRUE, TRUE);
+	MakeSurface_Generic(gDisplayMode.width, gDisplayMode.height, SURFACE_ID_MAP, TRUE, TRUE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_CASTS, FALSE, FALSE);
 	MakeSurface_Generic(256, 256, SURFACE_ID_LEVEL_TILESET, FALSE, FALSE);
 	MakeSurface_Generic(160, 16, SURFACE_ID_ROOM_NAME, FALSE, TRUE);

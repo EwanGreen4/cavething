@@ -246,7 +246,7 @@ void PutArmsEnergy(BOOL flash)
 
 	RECT rcPer = {72, 48, 80, 56};
 	RECT rcLv = {80, 80, 96, 88};
-	RECT rcView = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+	RECT rcView = {0, 0, gDisplayMode.width, gDisplayMode.height};
 	RECT rcNone = {80, 48, 96, 56};
 
 	if (gArmsEnergyX > 16)

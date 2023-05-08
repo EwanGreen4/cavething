@@ -1123,7 +1123,7 @@ void ActNpc051(NPCHAR *npc)
 	switch (npc->act_no)
 	{
 		case 0:
-			if (npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) < gMC.x && npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) > gMC.x && npc->y - (((WINDOW_HEIGHT / 2) + 200) * 0x200) < gMC.y && npc->y + (((WINDOW_HEIGHT / 2) + 200) * 0x200) > gMC.y)
+			if (npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) < gMC.x && npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) > gMC.x && npc->y - (((gDisplayMode.height / 2) + 200) * 0x200) < gMC.y && npc->y + (((gDisplayMode.height / 2) + 200) * 0x200) > gMC.y)
 			{
 				npc->tgt_x = npc->x;
 				npc->tgt_y = npc->y;

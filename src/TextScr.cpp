@@ -46,7 +46,7 @@
 #include "Sound.h"
 #include "Stage.h"
 
-#define TEXT_LEFT (WINDOW_WIDTH / 2 - 108)
+#define TEXT_LEFT (gDisplayMode.width / 2 - 108)
 
 #define IS_COMMAND(c1, c2, c3) (gTS.data[gTS.p_read + 1] == (c1) && gTS.data[gTS.p_read + 2] == (c2) && gTS.data[gTS.p_read + 3] == (c3))
 
@@ -251,8 +251,8 @@ BOOL StartTextScript(int no)
 	gMC.shock = 0;
 
 	gTS.rcText.left = TEXT_LEFT;
-	gTS.rcText.top = WINDOW_HEIGHT - 56;
-	gTS.rcText.right = WINDOW_WIDTH - TEXT_LEFT;
+	gTS.rcText.top = gDisplayMode.height - 56;
+	gTS.rcText.right = gDisplayMode.width - TEXT_LEFT;
 	gTS.rcText.bottom = gTS.rcText.top + 48;
 
 	/* This is present in the Linux port, but not the Windows version (1.0.0.6, at least)
@@ -468,7 +468,7 @@ void PutTextScript(void)
 	}
 	else
 	{
-		gTS.rcText.top = WINDOW_HEIGHT - 56;
+		gTS.rcText.top = gDisplayMode.height - 56;
 		gTS.rcText.bottom = gTS.rcText.top + 48;
 	}
 
@@ -479,10 +479,10 @@ void PutTextScript(void)
 		RECT rcFrame2 = {0, 8, 244, 16};
 		RECT rcFrame3 = {0, 16, 244, 24};
 
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord(gTS.rcText.top - 10), &rcFrame1, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 122), PixelToScreenCoord(gTS.rcText.top - 10), &rcFrame1, SURFACE_ID_TEXT_BOX);
 		for (i = 1; i < 7; ++i)
-			PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord((i * 8) + gTS.rcText.top - 10), &rcFrame2, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 122), PixelToScreenCoord((i * 8) + gTS.rcText.top - 10), &rcFrame3, SURFACE_ID_TEXT_BOX);
+			PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 122), PixelToScreenCoord((i * 8) + gTS.rcText.top - 10), &rcFrame2, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 122), PixelToScreenCoord((i * 8) + gTS.rcText.top - 10), &rcFrame3, SURFACE_ID_TEXT_BOX);
 	}
 
 	// Draw face picture
@@ -544,14 +544,14 @@ void PutTextScript(void)
 
 	if (gTS.item != 0)
 	{
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 40), PixelToScreenCoord(WINDOW_HEIGHT - 112), &rcItemBox1, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 40), PixelToScreenCoord(WINDOW_HEIGHT - 96), &rcItemBox2, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) + 32), PixelToScreenCoord(WINDOW_HEIGHT - 112), &rcItemBox3, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) + 32), PixelToScreenCoord(WINDOW_HEIGHT - 104), &rcItemBox4, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) + 32), PixelToScreenCoord(WINDOW_HEIGHT - 96), &rcItemBox4, SURFACE_ID_TEXT_BOX);
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) + 32), PixelToScreenCoord(WINDOW_HEIGHT - 88), &rcItemBox5, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 40), PixelToScreenCoord(gDisplayMode.height - 112), &rcItemBox1, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 40), PixelToScreenCoord(gDisplayMode.height - 96), &rcItemBox2, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) + 32), PixelToScreenCoord(gDisplayMode.height - 112), &rcItemBox3, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) + 32), PixelToScreenCoord(gDisplayMode.height - 104), &rcItemBox4, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) + 32), PixelToScreenCoord(gDisplayMode.height - 96), &rcItemBox4, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) + 32), PixelToScreenCoord(gDisplayMode.height - 88), &rcItemBox5, SURFACE_ID_TEXT_BOX);
 
-		if (gTS.item_y < WINDOW_HEIGHT - 104)
+		if (gTS.item_y < gDisplayMode.height - 104)
 			++gTS.item_y;
 
 		if (gTS.item < 1000)
@@ -560,7 +560,7 @@ void PutTextScript(void)
 			rect.right = rect.left + 16;
 			rect.top = (gTS.item / 16) * 16;
 			rect.bottom = rect.top + 16;
-			PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 12), PixelToScreenCoord(gTS.item_y), &rect, SURFACE_ID_ARMS_IMAGE);
+			PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 12), PixelToScreenCoord(gTS.item_y), &rect, SURFACE_ID_ARMS_IMAGE);
 		}
 		else
 		{
@@ -568,7 +568,7 @@ void PutTextScript(void)
 			rect.right = rect.left + 32;
 			rect.top = 16 * ((gTS.item - 1000) / 8);
 			rect.bottom = rect.top + 16;
-			PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) - 20), PixelToScreenCoord(gTS.item_y), &rect, SURFACE_ID_ITEM_IMAGE);
+			PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) - 20), PixelToScreenCoord(gTS.item_y), &rect, SURFACE_ID_ITEM_IMAGE);
 		}
 	}
 
@@ -579,13 +579,13 @@ void PutTextScript(void)
 	if (gTS.mode == 6)
 	{
 		if (gTS.wait < 2)
-			i = (WINDOW_HEIGHT - 96) + (2 - gTS.wait) * 4;
+			i = (gDisplayMode.height - 96) + (2 - gTS.wait) * 4;
 		else
-			i = WINDOW_HEIGHT - 96;
+			i = gDisplayMode.height - 96;
 
-		PutBitmap3(&grcFull, PixelToScreenCoord((WINDOW_WIDTH / 2) + 56), PixelToScreenCoord(i), &rect_yesno, SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&grcFull, PixelToScreenCoord((gDisplayMode.width / 2) + 56), PixelToScreenCoord(i), &rect_yesno, SURFACE_ID_TEXT_BOX);
 		if (gTS.wait == 16)
-			PutBitmap3(&grcFull, PixelToScreenCoord((gTS.select * 41) + (WINDOW_WIDTH / 2) + 51), PixelToScreenCoord(WINDOW_HEIGHT - 86), &rect_cur, SURFACE_ID_TEXT_BOX);
+			PutBitmap3(&grcFull, PixelToScreenCoord((gTS.select * 41) + (gDisplayMode.width / 2) + 51), PixelToScreenCoord(gDisplayMode.height - 86), &rect_cur, SURFACE_ID_TEXT_BOX);
 	}
 }
 
@@ -1264,58 +1264,69 @@ int TextScriptProc(void)
 					}
 					else if (IS_COMMAND('F','A','C'))
 					{
-						z = GetTextScriptNo(gTS.p_read + 4);
-						if (gTS.face != (signed char)z)	// Not sure why these casts are here, but they're needed for the same assembly code to be produced
-						{
-							gTS.face = (signed char)z;
-							gTS.face_x = (WINDOW_WIDTH / 2 - 156) * 0x200;
-						}
-						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('F','A','C'))	// Duplicate command
-					{
-						z = GetTextScriptNo(gTS.p_read + 4);
+                                                z = GetTextScriptNo(gTS.p_read +
+                                                                    4);
+                                                if (gTS.face !=
+                                                    (signed char)
+                                                        z)  // Not sure why
+                                                            // these casts are
+                                                            // here, but they're
+                                                            // needed for the
+                                                            // same assembly
+                                                            // code to be
+                                                            // produced
+                                                {
+                                                        gTS.face =
+                                                            (signed char)z;
+                                                        gTS.face_x =
+                                                            (gDisplayMode
+                                                                     .width /
+                                                                 2 -
+                                                             156) *
+                                                            0x200;
+                                                }
+                                                gTS.p_read += 8;
+                                        } else if (IS_COMMAND('F', 'A',
+                                                              'C'))  // Duplicate
+                                                                     // command
+                                        {
+                                                z = GetTextScriptNo(gTS.p_read + 4);
 						if (gTS.face != (signed char)z)
 						{
-							gTS.face = (signed char)z;
-							gTS.face_x = (WINDOW_WIDTH / 2 - 156) * 0x200;
-						}
-						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('G','I','T'))
-					{
-						z = GetTextScriptNo(gTS.p_read + 4);
+                                                        gTS.face =
+                                                            (signed char)z;
+                                                        gTS.face_x =
+                                                            (gDisplayMode
+                                                                     .width /
+                                                                 2 -
+                                                             156) *
+                                                            0x200;
+                                                }
+                                                gTS.p_read += 8;
+                                        } else if (IS_COMMAND('G', 'I', 'T')) {
+                                                z = GetTextScriptNo(gTS.p_read + 4);
 						gTS.item = z;
-						gTS.item_y = WINDOW_HEIGHT - 112;
-						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('N','U','M'))
-					{
-						// This supports up to four different values, but only one is actually used (a second is used erroneously)
+                                                gTS.item_y =
+                                                    gDisplayMode.height - 112;
+                                                gTS.p_read += 8;
+                                        } else if (IS_COMMAND('N', 'U', 'M')) {
+                                                // This supports up to four different values, but only one is actually used (a second is used erroneously)
 						z = GetTextScriptNo(gTS.p_read + 4);
 						SetNumberTextScript(z);
 						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('C','R','E'))
-					{
-						g_GameFlags |= 8;
+                                        } else if (IS_COMMAND('C', 'R', 'E')) {
+                                                g_GameFlags |= 8;
 						StartCreditScript();
 						gTS.p_read += 4;
-					}
-					else if (IS_COMMAND('S','I','L'))
-					{
-						z = GetTextScriptNo(gTS.p_read + 4);
+                                        } else if (IS_COMMAND('S', 'I', 'L')) {
+                                                z = GetTextScriptNo(gTS.p_read + 4);
 						SetCreditIllust(z);
 						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('C','I','L'))
-					{
-						CutCreditIllust();
+                                        } else if (IS_COMMAND('C', 'I', 'L')) {
+                                                CutCreditIllust();
 						gTS.p_read += 4;
-					}
-					else if (IS_COMMAND('X','X','1'))
-					{
-						bExit = TRUE;
+                                        } else if (IS_COMMAND('X', 'X', '1')) {
+                                                bExit = TRUE;
 						z = GetTextScriptNo(gTS.p_read + 4);
 
 						switch (Scene_DownIsland(z))
@@ -1328,15 +1339,11 @@ int TextScriptProc(void)
 						}
 
 						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('M','I','M'))
-					{
-						gMIMCurrentNum = GetTextScriptNo(gTS.p_read + 4);
+                                        } else if (IS_COMMAND('M', 'I', 'M')) {
+                                                gMIMCurrentNum = GetTextScriptNo(gTS.p_read + 4);
 						gTS.p_read += 8;
-					}
-					else if (IS_COMMAND('P','H','Y'))
-					{
-						x = GetTextScriptNo(gTS.p_read + 4);
+                                        } else if (IS_COMMAND('P', 'H', 'Y')) {
+                                                x = GetTextScriptNo(gTS.p_read + 4);
 						y = GetTextScriptNo(gTS.p_read + 9);
 
 						switch (x)
@@ -1411,14 +1418,10 @@ int TextScriptProc(void)
 						}
 
 						gTS.p_read += 13;
-					}
-					else if (IS_COMMAND('E','S','C'))
-					{
-						return enum_ESCRETURN_restart;
-					}
-					else
-					{
-						char str_0[0x40];
+                                        } else if (IS_COMMAND('E', 'S', 'C')) {
+                                                return enum_ESCRETURN_restart;
+                                        } else {
+                                                char str_0[0x40];
 					#if !defined(JAPANESE) && defined(FIX_BUGS) // The Aeon Genesis translation didn't translate this
 						sprintf(str_0, "Unknown code:<%c%c%c", gTS.data[gTS.p_read + 1], gTS.data[gTS.p_read + 2], gTS.data[gTS.p_read + 3]);
 						Backend_ShowMessageBox("Error", str_0);
@@ -1427,8 +1430,8 @@ int TextScriptProc(void)
 						Backend_ShowMessageBox("エラー", str_0);
 					#endif
 						return enum_ESCRETURN_exit;
-					}
-				}
+                                        }
+                                }
 				else
 				{
 					if (gTS.data[gTS.p_read] == '\r')

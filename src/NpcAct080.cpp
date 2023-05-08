@@ -1743,7 +1743,7 @@ void ActNpc096(NPCHAR *npc)
 			if (npc->ani_no > 2)
 				npc->ani_no = 0;
 
-			if (gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 120) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+			if (gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 120) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 120) * 0x200))
 			{
 				if (Random(0, 5) == 1)
 					SetNpChar(199, npc->x, npc->y + (Random(-8, 8) * 0x200), 0, 0, 0, NULL, 0x100);
@@ -1793,7 +1793,7 @@ void ActNpc097(NPCHAR *npc)
 			if (npc->ani_no > 2)
 				npc->ani_no = 0;
 
-			if (gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 120) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+			if (gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 120) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 120) * 0x200))
 			{
 				if (Random(0, 5) == 1)
 					SetNpChar(199, npc->x + (Random(-8, 8) * 0x200), npc->y, 0, 0, 1, NULL, 0x100);
@@ -1840,7 +1840,7 @@ void ActNpc098(NPCHAR *npc)
 			if (npc->ani_no > 2)
 				npc->ani_no = 0;
 
-			if (gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 120) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+			if (gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 120) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 120) * 0x200))
 			{
 				if (Random(0, 5) == 1)
 					SetNpChar(199, npc->x, npc->y + (Random(-8, 8) * 0x200), 0, 0, 2, NULL, 0x100);
@@ -1890,7 +1890,7 @@ void ActNpc099(NPCHAR *npc)
 			if (npc->ani_no > 2)
 				npc->ani_no = 0;
 
-			if (gMC.x > npc->x - (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.x < npc->x + (((WINDOW_WIDTH / 2) + 160) * 0x200) && gMC.y > npc->y - (((WINDOW_HEIGHT / 2) + 120) * 0x200) && gMC.y < npc->y + (((WINDOW_HEIGHT / 2) + 120) * 0x200))
+			if (gMC.x > npc->x - (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.x < npc->x + (((gDisplayMode.width / 2) + 160) * 0x200) && gMC.y > npc->y - (((gDisplayMode.height / 2) + 120) * 0x200) && gMC.y < npc->y + (((gDisplayMode.height / 2) + 120) * 0x200))
 			{
 				if (Random(0, 5) == 1)
 					SetNpChar(199, npc->x + (Random(-8, 8) * 0x200), npc->y, 0, 0, 3, NULL, 0x100);

@@ -78,10 +78,10 @@ BOOL InitBack(const char *fName, int type)
 	}
 
 	// Adjust background sizes to account for higher sprite resolutions
-	gBack.partsW /= SPRITE_SCALE;
-	gBack.partsH /= SPRITE_SCALE;
+        gBack.partsW /= gDisplayMode.scale;
+        gBack.partsH /= gDisplayMode.scale;
 
-	gBack.flag = TRUE;	// This variable is otherwise unused
+        gBack.flag = TRUE;	// This variable is otherwise unused
 
 	// *Now* we actually load the bitmap
 	if (!ReloadBitmap_File(fName, SURFACE_ID_LEVEL_BACKGROUND))
@@ -117,32 +117,51 @@ void PutBack(int fx, int fy)
 	switch (gBack.type)
 	{
 		case BACKGROUND_TYPE_STATIONARY:
-			for (y = 0; y < WINDOW_HEIGHT; y += gBack.partsH)
-				for (x = 0; x < WINDOW_WIDTH; x += gBack.partsW)
-					PutBitmap4(&grcGame, PixelToScreenCoord(x), PixelToScreenCoord(y), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        for (y = 0; y < gDisplayMode.height; y += gBack.partsH)
+                          for (x = 0; x < gDisplayMode.width; x += gBack.partsW)
+                            PutBitmap4(&grcGame, PixelToScreenCoord(x),
+                                       PixelToScreenCoord(y), &rect,
+                                       SURFACE_ID_LEVEL_BACKGROUND);
 
-			break;
+                        break;
 
 		case BACKGROUND_TYPE_MOVE_DISTANT:
-			for (y = -(fy / 2 % (gBack.partsH * 0x200)); y < WINDOW_HEIGHT * 0x200; y += gBack.partsH * 0x200)
-				for (x = -(fx / 2 % (gBack.partsW * 0x200)); x < WINDOW_WIDTH * 0x200; x += gBack.partsW * 0x200)
-					PutBitmap4(&grcGame, SubpixelToScreenCoord(x), SubpixelToScreenCoord(y), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        for (y = -(fy / 2 % (gBack.partsH * 0x200));
+                             y < gDisplayMode.height * 0x200;
+                             y += gBack.partsH * 0x200)
+                          for (x = -(fx / 2 % (gBack.partsW * 0x200));
+                               x < gDisplayMode.width * 0x200;
+                               x += gBack.partsW * 0x200)
+                            PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                       SubpixelToScreenCoord(y), &rect,
+                                       SURFACE_ID_LEVEL_BACKGROUND);
 
-			break;
+                        break;
 
 		case BACKGROUND_TYPE_MOVE_NEAR:
-			for (y = -(fy % (gBack.partsH * 0x200)); y < WINDOW_HEIGHT * 0x200; y += gBack.partsH * 0x200)
-				for (x = -(fx % (gBack.partsW * 0x200)); x < WINDOW_WIDTH * 0x200; x += gBack.partsW * 0x200)
-					PutBitmap4(&grcGame, SubpixelToScreenCoord(x), SubpixelToScreenCoord(y), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        for (y = -(fy % (gBack.partsH * 0x200));
+                             y < gDisplayMode.height * 0x200;
+                             y += gBack.partsH * 0x200)
+                          for (x = -(fx % (gBack.partsW * 0x200));
+                               x < gDisplayMode.width * 0x200;
+                               x += gBack.partsW * 0x200)
+                            PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                       SubpixelToScreenCoord(y), &rect,
+                                       SURFACE_ID_LEVEL_BACKGROUND);
 
-			break;
+                        break;
 
 		case BACKGROUND_TYPE_AUTOSCROLL:
-			for (y = -gBack.partsH; y < WINDOW_HEIGHT; y += gBack.partsH)
-				for (x = -(gBack.fx % (gBack.partsW * 0x200)); x < WINDOW_WIDTH * 0x200; x += gBack.partsW * 0x200)
-					PutBitmap4(&grcGame, SubpixelToScreenCoord(x), PixelToScreenCoord(y), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        for (y = -gBack.partsH; y < gDisplayMode.height;
+                             y += gBack.partsH)
+                          for (x = -(gBack.fx % (gBack.partsW * 0x200));
+                               x < gDisplayMode.width * 0x200;
+                               x += gBack.partsW * 0x200)
+                            PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                       PixelToScreenCoord(y), &rect,
+                                       SURFACE_ID_LEVEL_BACKGROUND);
 
-			break;
+                        break;
 
 		case BACKGROUND_TYPE_CLOUDS_WINDY:
 		case BACKGROUND_TYPE_CLOUDS:
@@ -152,55 +171,81 @@ void PutBack(int fx, int fy)
 			rect.top = 0;
 			rect.bottom = 88;
 			rect.left = 0;
-			rect.right = 320;
-			PutBitmap4(&grcGame, PixelToScreenCoord((WINDOW_WIDTH - 320) / 2), PixelToScreenCoord(0), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        rect.right = 320;
+                        PutBitmap4(
+                            &grcGame,
+                            PixelToScreenCoord((gDisplayMode.width - 320) / 2),
+                            PixelToScreenCoord(0), &rect,
+                            SURFACE_ID_LEVEL_BACKGROUND);
 
-			// Draw the repeating star/sky pattern on each side of the top row
-			if (gBack.type == 6)
+                        // Draw the repeating star/sky pattern on each side of
+                        // the top row
+                        if (gBack.type == 6)
 				rect.right = 255;
 			else
-				rect.left = 106;
+                                rect.left = 106;
 
-			for (x = ((WINDOW_WIDTH - 320) / 2); x > 0; x -= (rect.right - rect.left))
-				PutBitmap4(&grcGame, PixelToScreenCoord(x - (rect.right - rect.left)), PixelToScreenCoord(0), &rect, SURFACE_ID_LEVEL_BACKGROUND);
-			for (x = ((WINDOW_WIDTH - 320) / 2) + 320; x < WINDOW_WIDTH; x += (rect.right - rect.left))
-				PutBitmap4(&grcGame, PixelToScreenCoord(x), PixelToScreenCoord(0), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        for (x = ((gDisplayMode.width - 320) / 2); x > 0;
+                             x -= (rect.right - rect.left))
+                                PutBitmap4(&grcGame,
+                                           PixelToScreenCoord(
+                                               x - (rect.right - rect.left)),
+                                           PixelToScreenCoord(0), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
+                        for (x = ((gDisplayMode.width - 320) / 2) + 320;
+                             x < gDisplayMode.width;
+                             x += (rect.right - rect.left))
+                                PutBitmap4(&grcGame, PixelToScreenCoord(x),
+                                           PixelToScreenCoord(0), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
 
-			// Draw each cloud layer from top to bottom
+                        // Draw each cloud layer from top to bottom
 
 			// Draw first cloud layer
 			rect.top = 88;
 			rect.bottom = 123;
 			rect.left = 0;
-			rect.right = 320;
-			for (x = -((gBack.fx * 0x200) / 2); x < WINDOW_WIDTH * 0x200; x += 320 * 0x200)
-				PutBitmap4(&grcGame, SubpixelToScreenCoord(x), PixelToScreenCoord(88), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        rect.right = 320;
+                        for (x = -((gBack.fx * 0x200) / 2);
+                             x < gDisplayMode.width * 0x200; x += 320 * 0x200)
+                                PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                           PixelToScreenCoord(88), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
 
-			// Draw second cloud layer
+                        // Draw second cloud layer
 			rect.top = 123;
 			rect.bottom = 146;
 			rect.left = 0;
-			rect.right = 320;
-			for (x = -((gBack.fx % 320) * 0x200); x < WINDOW_WIDTH * 0x200; x += 320 * 0x200)
-				PutBitmap4(&grcGame, SubpixelToScreenCoord(x), PixelToScreenCoord(123), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        rect.right = 320;
+                        for (x = -((gBack.fx % 320) * 0x200);
+                             x < gDisplayMode.width * 0x200; x += 320 * 0x200)
+                                PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                           PixelToScreenCoord(123), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
 
-			// Draw third cloud layer
+                        // Draw third cloud layer
 			rect.top = 146;
 			rect.bottom = 176;
 			rect.left = 0;
-			rect.right = 320;
-			for (x = -(((gBack.fx * 2) % 320) * 0x200); x < WINDOW_WIDTH * 0x200; x += 320 * 0x200)
-				PutBitmap4(&grcGame, SubpixelToScreenCoord(x), PixelToScreenCoord(146), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        rect.right = 320;
+                        for (x = -(((gBack.fx * 2) % 320) * 0x200);
+                             x < gDisplayMode.width * 0x200; x += 320 * 0x200)
+                                PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                           PixelToScreenCoord(146), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
 
-			// Draw fourth cloud layer
+                        // Draw fourth cloud layer
 			rect.top = 176;
 			rect.bottom = 240;
 			rect.left = 0;
-			rect.right = 320;
-			for (x = -(((gBack.fx * 4) % 320) * 0x200); x < WINDOW_WIDTH * 0x200; x += 320 * 0x200)
-				PutBitmap4(&grcGame, SubpixelToScreenCoord(x), PixelToScreenCoord(176), &rect, SURFACE_ID_LEVEL_BACKGROUND);
+                        rect.right = 320;
+                        for (x = -(((gBack.fx * 4) % 320) * 0x200);
+                             x < gDisplayMode.width * 0x200; x += 320 * 0x200)
+                                PutBitmap4(&grcGame, SubpixelToScreenCoord(x),
+                                           PixelToScreenCoord(176), &rect,
+                                           SURFACE_ID_LEVEL_BACKGROUND);
 
-			break;
+                        break;
 	}
 }
 
@@ -218,10 +263,11 @@ void PutFront(int fx, int fy)
 	switch (gBack.type)
 	{
 		case BACKGROUND_TYPE_WATER:
-			x_1 = fx / (32 * 0x200);
-			x_2 = x_1 + (((WINDOW_WIDTH + (32 - 1)) / 32) + 1);
-			y_1 = 0;
-			y_2 = y_1 + 32;
+                        x_1 = fx / (32 * 0x200);
+                        x_2 =
+                            x_1 + (((gDisplayMode.width + (32 - 1)) / 32) + 1);
+                        y_1 = 0;
+                        y_2 = y_1 + 32;
 
 			for (y = y_1; y < y_2; ++y)
 			{
@@ -230,8 +276,9 @@ void PutFront(int fx, int fy)
 				if (ypos < PixelToScreenCoord(-32))
 					continue;
 
-				if (ypos > PixelToScreenCoord(WINDOW_HEIGHT))
-					break;
+                                if (ypos >
+                                    PixelToScreenCoord(gDisplayMode.height))
+                                  break;
 
 				for (x = x_1; x < x_2; ++x)
 				{

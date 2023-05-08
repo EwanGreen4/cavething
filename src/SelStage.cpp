@@ -88,7 +88,7 @@ void MoveStageSelectCursor(void)
 	while (gPermitStage[stage_num].index != 0)
 		++stage_num;
 
-	stage_x = (WINDOW_WIDTH - (stage_num * 40)) / 2;	// Unused
+	stage_x = (gDisplayMode.width - (stage_num * 40)) / 2;	// Unused
 
 	if (stage_num == 0)
 		return;
@@ -119,7 +119,7 @@ void PutStageSelectObject(void)
 	int i;
 	RECT rcStage;
 
-	RECT rcView = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+	RECT rcView = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
 	RECT rcCur[2] = {
 		{80, 88, 112, 104},
@@ -131,10 +131,10 @@ void PutStageSelectObject(void)
 	int stage_num;
 	int stage_x;
 
-	if (gStageSelectTitleY > (WINDOW_HEIGHT / 2) - 74)
+	if (gStageSelectTitleY > (gDisplayMode.height / 2) - 74)
 		--gStageSelectTitleY;
 
-	PutBitmap3(&rcView, PixelToScreenCoord((WINDOW_WIDTH / 2) - 32), PixelToScreenCoord(gStageSelectTitleY), &rcTitle1, SURFACE_ID_TEXT_BOX);
+	PutBitmap3(&rcView, PixelToScreenCoord((gDisplayMode.width / 2) - 32), PixelToScreenCoord(gStageSelectTitleY), &rcTitle1, SURFACE_ID_TEXT_BOX);
 
 	stage_num = 0;
 	while (gPermitStage[stage_num].index)
@@ -144,9 +144,9 @@ void PutStageSelectObject(void)
 
 	if (stage_num != 0)
 	{
-		stage_x = (WINDOW_WIDTH - (stage_num * 40)) / 2;
+		stage_x = (gDisplayMode.width - (stage_num * 40)) / 2;
 
-		PutBitmap3(&rcView, PixelToScreenCoord(stage_x + (gSelectedStage * 40)), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 56), &rcCur[flash / 2 % 2], SURFACE_ID_TEXT_BOX);
+		PutBitmap3(&rcView, PixelToScreenCoord(stage_x + (gSelectedStage * 40)), PixelToScreenCoord((gDisplayMode.height / 2) - 56), &rcCur[flash / 2 % 2], SURFACE_ID_TEXT_BOX);
 
 		for (i = 0; i < STAGE_MAX; ++i)
 		{
@@ -161,7 +161,7 @@ void PutStageSelectObject(void)
 			rcStage.top = (gPermitStage[i].index / 8) * 16;
 			rcStage.bottom = rcStage.top + 16;
 
-			PutBitmap3(&rcView, PixelToScreenCoord(stage_x + (i * 40)), PixelToScreenCoord((WINDOW_HEIGHT / 2) - 56), &rcStage, SURFACE_ID_STAGE_ITEM);
+			PutBitmap3(&rcView, PixelToScreenCoord(stage_x + (i * 40)), PixelToScreenCoord((gDisplayMode.height / 2) - 56), &rcStage, SURFACE_ID_STAGE_ITEM);
 		}
 	}
 }
@@ -170,13 +170,13 @@ int StageSelectLoop(int *p_event)
 {
 	std::string old_script_path;
 
-	RECT rcView = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+	RECT rcView = {0, 0, gDisplayMode.width, gDisplayMode.height};
 
 	gSelectedStage = 0;
-	BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcFull);
+        BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcGame);
 	old_script_path = GetTextScriptPath();
 	LoadTextScript2("StageSelect.tsc");
-	gStageSelectTitleY = (WINDOW_HEIGHT / 2) - 66;
+	gStageSelectTitleY = (gDisplayMode.height / 2) - 66;
 	StartTextScript(gPermitStage[gSelectedStage].index + 1000);
 
 	for (;;)

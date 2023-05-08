@@ -76,7 +76,10 @@ struct ISLAND_SPRITE
 };
 
 static CREDIT Credit;
-static STRIP Strip[MAX_STRIP];
+static STRIP *Strip =
+    reinterpret_cast<STRIP *>(malloc(MAX_STRIP * sizeof(STRIP)));
+//[MAX_STRIP];
+
 static ILLUSTRATION Illust;
 
 // Update casts
@@ -111,7 +114,7 @@ void PutStripper(void)
 			rc.top = s * 16;
 			rc.bottom = rc.top + 16;
 
-			PutBitmap3(&grcFull, SubpixelToScreenCoord(Strip[s].x) + PixelToScreenCoord((WINDOW_WIDTH - 320) / 2), SubpixelToScreenCoord(Strip[s].y), &rc, SURFACE_ID_CREDIT_CAST);
+			PutBitmap3(&grcFull, SubpixelToScreenCoord(Strip[s].x) + PixelToScreenCoord((gDisplayMode.width - 320) / 2), SubpixelToScreenCoord(Strip[s].y), &rc, SURFACE_ID_CREDIT_CAST);
 
 			// Draw character
 			rc.left = (Strip[s].cast % 13) * 24;
@@ -119,7 +122,7 @@ void PutStripper(void)
 			rc.top = (Strip[s].cast / 13) * 24;
 			rc.bottom = rc.top + 24;
 
-			PutBitmap3(&grcFull, SubpixelToScreenCoord(Strip[s].x) + PixelToScreenCoord(((WINDOW_WIDTH - 320) / 2) - 24), SubpixelToScreenCoord(Strip[s].y) - PixelToScreenCoord(8), &rc, SURFACE_ID_CASTS);
+			PutBitmap3(&grcFull, SubpixelToScreenCoord(Strip[s].x) + PixelToScreenCoord(((gDisplayMode.width - 320) / 2) - 24), SubpixelToScreenCoord(Strip[s].y) - PixelToScreenCoord(8), &rc, SURFACE_ID_CASTS);
 		}
 	}
 }
@@ -204,8 +207,8 @@ void PutIllust(void)
 	RECT rcIllust = {0, 0, 160, 240};
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240 // TODO - Move this to CSE2EX
 	// Widescreen edit
-	RECT rcClip = {(WINDOW_WIDTH - 320) / 2, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-	PutBitmap3(&rcClip, SubpixelToScreenCoord(Illust.x) + PixelToScreenCoord((WINDOW_WIDTH - 320) / 2), PixelToScreenCoord((WINDOW_HEIGHT - 240) / 2), &rcIllust, SURFACE_ID_CREDITS_IMAGE);
+	RECT rcClip = {(gDisplayMode.width - 320) / 2, 0, gDisplayMode.width, gDisplayMode.height};
+	PutBitmap3(&rcClip, SubpixelToScreenCoord(Illust.x) + PixelToScreenCoord((gDisplayMode.width - 320) / 2), PixelToScreenCoord((gDisplayMode.height - 240) / 2), &rcIllust, SURFACE_ID_CREDITS_IMAGE);
 #else
 	PutBitmap3(&grcFull, SubpixelToScreenCoord(Illust.x) + PixelToScreenCoord((WINDOW_WIDTH - 320) / 2), PixelToScreenCoord((WINDOW_HEIGHT - 240) / 2), &rcIllust, SURFACE_ID_CREDITS_IMAGE);
 #endif
@@ -290,12 +293,12 @@ BOOL StartCreditScript(void)
 	Illust.act_no = ILLUSTRATION_ACTION_IDLE;
 
 	// Modify cliprect
-	grcGame.left = WINDOW_WIDTH / 2;
+	grcGame.left = gDisplayMode.width / 2;
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240 // TODO - Move to CSE2EX
 	// These three are non-vanilla: for wide/tallscreen support
-	grcGame.right = ((WINDOW_WIDTH - 320) / 2) + 320;
-	grcGame.top = (WINDOW_HEIGHT - 240) / 2;
-	grcGame.bottom = ((WINDOW_HEIGHT - 240) / 2) + 240;
+	grcGame.right = ((gDisplayMode.width - 320) / 2) + 320;
+	grcGame.top = (gDisplayMode.height - 240) / 2;
+	grcGame.bottom = ((gDisplayMode.height - 240) / 2) + 240;
 #endif
 
 	// Reload casts
@@ -355,7 +358,7 @@ static void ActionCredit_Read(void)
 				len = GetScriptNumber(&Credit.pData[Credit.offset]);
 
 				// Create cast object
-				SetStripper(Credit.start_x, (WINDOW_HEIGHT + 8) * 0x200, text, len);
+				SetStripper(Credit.start_x, (gDisplayMode.height + 8) * 0x200, text, len);
 
 				// Change offset
 				Credit.offset += 4;
@@ -511,7 +514,7 @@ int Scene_DownIsland(int mode)
 	int wait;
 
 	// Setup background
-	RECT rc_frame = {(WINDOW_WIDTH / 2) - 80, (WINDOW_HEIGHT / 2) - 40, (WINDOW_WIDTH / 2) + 80, (WINDOW_HEIGHT / 2) + 40};
+	RECT rc_frame = {(gDisplayMode.width / 2) - 80, (gDisplayMode.height / 2) - 40, (gDisplayMode.width / 2) + 80, (gDisplayMode.height / 2) + 40};
 	RECT rc_sky = {0, 0, 160, 80};
 	RECT rc_ground = {160, 48, 320, 80};
 
@@ -585,9 +588,9 @@ int Scene_DownIsland(int mode)
 
 		// Draw scene
 		CortBox(&grcFull, 0);
-		PutBitmap3(&rc_frame, PixelToScreenCoord(80 + ((WINDOW_WIDTH - 320) / 2)), PixelToScreenCoord(80 + ((WINDOW_HEIGHT - 240) / 2)), &rc_sky, SURFACE_ID_LEVEL_SPRITESET_1);
-		PutBitmap3(&rc_frame, SubpixelToScreenCoord(sprite.x) - PixelToScreenCoord(20) + PixelToScreenCoord((WINDOW_WIDTH - 320) / 2), SubpixelToScreenCoord(sprite.y) - PixelToScreenCoord(12) + PixelToScreenCoord((WINDOW_HEIGHT - 240) / 2), &rc_sprite, SURFACE_ID_LEVEL_SPRITESET_1);
-		PutBitmap3(&rc_frame, PixelToScreenCoord(80 + ((WINDOW_WIDTH - 320) / 2)), PixelToScreenCoord(128 + ((WINDOW_HEIGHT - 240) / 2)), &rc_ground, SURFACE_ID_LEVEL_SPRITESET_1);
+		PutBitmap3(&rc_frame, PixelToScreenCoord(80 + ((gDisplayMode.width - 320) / 2)), PixelToScreenCoord(80 + ((gDisplayMode.height - 240) / 2)), &rc_sky, SURFACE_ID_LEVEL_SPRITESET_1);
+		PutBitmap3(&rc_frame, SubpixelToScreenCoord(sprite.x) - PixelToScreenCoord(20) + PixelToScreenCoord((gDisplayMode.width - 320) / 2), SubpixelToScreenCoord(sprite.y) - PixelToScreenCoord(12) + PixelToScreenCoord((gDisplayMode.height - 240) / 2), &rc_sprite, SURFACE_ID_LEVEL_SPRITESET_1);
+		PutBitmap3(&rc_frame, PixelToScreenCoord(80 + ((gDisplayMode.width - 320) / 2)), PixelToScreenCoord(128 + ((gDisplayMode.height - 240) / 2)), &rc_ground, SURFACE_ID_LEVEL_SPRITESET_1);
 		PutTimeCounter(16, 8);
 
 		// Draw window

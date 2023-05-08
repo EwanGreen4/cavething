@@ -96,12 +96,13 @@ typedef struct Backend_DisplayMode
 	unsigned int refresh_rate;
 } Backend_DisplayMode;
 
-bool Backend_Init(void (*drag_and_drop_callback)(const char *path), void (*window_focus_callback)(bool focus));
+bool Backend_Init(void (*drag_and_drop_callback)(const char *path), void (*window_focus_callback)(bool focus), void (*window_size_changed_callback)(size_t width, size_t height));
 void Backend_Deinit(void);
 void Backend_PostWindowCreation(void);
 bool Backend_GetPaths(std::string *module_path, std::string *data_path);
 void Backend_HideMouse(void);
 void Backend_SetWindowIcon(const unsigned char *rgb_pixels, size_t width, size_t height);
+void Backend_SetSizeConstraints(const unsigned int min_width, const unsigned int min_height, const unsigned int max_width, const unsigned int max_height);
 void Backend_SetCursor(const unsigned char *rgba_pixels, size_t width, size_t height);
 void Backend_EnableDragAndDrop(void);
 bool Backend_SystemTask(bool active);

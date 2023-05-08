@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
-
+#include "../../CommonDefines.h"
 #include "SDL.h"
 
 #include "../../WindowsWrapper.h"
@@ -17,6 +17,7 @@
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 
 typedef struct RenderBackend_Surface
 {
@@ -64,6 +65,30 @@ static void RectToSDLRect(const RenderBackend_Rect *rect, SDL_Rect *sdl_rect)
 		sdl_rect->h = 0;
 }
 
+static int ResizeEventWatcher(void* data, SDL_Event* event) {
+        if (event->type == SDL_WINDOWEVENT &&
+            event->window.event == SDL_WINDOWEVENT_RESIZED) {
+                SDL_Window* win = SDL_GetWindowFromID(event->window.windowID);
+                if (win == (SDL_Window*)data) {
+                  if(RenderBackend_WindowSizeChangedCallback)
+                    RenderBackend_WindowSizeChangedCallback(event->window.data1, event->window.data2);
+                  RenderBackend_HandleWindowResize(event->window.data1, event->window.data2);
+
+//                  SDL_RenderClear(renderer);
+//                  SDL_SetRenderDrawColor(renderer, event->window.data2 % 255, 0, 0, 255);
+//                  SDL_Rect Rect = {0,0,200,200};
+//                  SDL_RenderFillRect(renderer, /*&Rect*/ &window_rect);
+//                  SDL_RenderPresent(renderer);
+
+                  RenderBackend_DrawScreen();
+//                  SDL_RenderClear(renderer);
+//                  SDL_RenderCopy(renderer, framebuffer.texture, NULL, &window_rect);
+//                  SDL_RenderPresent(renderer);
+                }
+        }
+        return 0;
+}
+
 RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t screen_width, size_t screen_height, bool fullscreen, bool *vsync)
 {
 	Backend_PrintInfo("Available SDL render drivers:");
@@ -77,7 +102,8 @@ RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t scree
 			Backend_PrintInfo("%s", info.name);
 	}
 
-	window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_RESIZABLE);
+        window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen_width, screen_height, SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+        SDL_AddEventWatch(ResizeEventWatcher, window);
 
 	if (window != NULL)
 	{
@@ -89,7 +115,7 @@ RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t scree
 		SDL_SetHint(SDL_HINT_RENDER_BATCHING, "1");	// We never interfere with the renderer, so don't let SDL implicitly disable batching
 	#endif
 
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | (*vsync ? SDL_RENDERER_PRESENTVSYNC : 0));
+                renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE | (*vsync ? SDL_RENDERER_PRESENTVSYNC : 0));
 
 		if (renderer != NULL)
 		{
@@ -111,7 +137,9 @@ RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t scree
 				// Set up our premultiplied-alpha blend mode
 				premultiplied_blend_mode = SDL_ComposeCustomBlendMode(SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD, SDL_BLENDFACTOR_ONE, SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA, SDL_BLENDOPERATION_ADD);
 
-				RenderBackend_HandleWindowResize(screen_width, screen_height);
+                                if(RenderBackend_WindowSizeChangedCallback)
+                                  RenderBackend_WindowSizeChangedCallback(screen_width, screen_height);
+                                RenderBackend_HandleWindowResize(screen_width, screen_height);
 
 				Backend_PostWindowCreation();
 
@@ -145,8 +173,8 @@ RenderBackend_Surface* RenderBackend_Init(const char *window_title, size_t scree
 
 void RenderBackend_Deinit(void)
 {
-	if (upscaled_framebuffer.texture != NULL)
-		SDL_DestroyTexture(upscaled_framebuffer.texture);
+//	if (upscaled_framebuffer.texture != NULL)
+//		SDL_DestroyTexture(upscaled_framebuffer.texture);
 
 	SDL_DestroyTexture(framebuffer.texture);
 	SDL_DestroyRenderer(renderer);
@@ -155,25 +183,25 @@ void RenderBackend_Deinit(void)
 
 void RenderBackend_DrawScreen(void)
 {
-	if (upscaled_framebuffer.texture != NULL)
-	{
-		if (SDL_SetRenderTarget(renderer, upscaled_framebuffer.texture) < 0)
-			Backend_PrintError("Couldn't set upscaled framebuffer as the current rendering target: %s", SDL_GetError());
+        if (framebuffer.texture != NULL)
+        {
+//                if (SDL_SetRenderTarget(renderer, upscaled_framebuffer.texture) < 0)
+//                        Backend_PrintError("Couldn't set upscaled framebuffer as the current rendering target: %s", SDL_GetError());
 
-		if (SDL_RenderCopy(renderer, framebuffer.texture, NULL, NULL) < 0)
+                if (SDL_RenderCopy(renderer, framebuffer.texture, NULL, NULL) < 0)
 			Backend_PrintError("Failed to copy framebuffer texture to upscaled framebuffer: %s", SDL_GetError());
-	}
+        }
 
-	if (SDL_SetRenderTarget(renderer, NULL) < 0)
-		Backend_PrintError("Couldn't set default render target as the current rendering target: %s", SDL_GetError());
+        if (SDL_SetRenderTarget(renderer, NULL) < 0)
+                Backend_PrintError("Couldn't set default render target as the current rendering target: %s", SDL_GetError());
 
-	if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF) < 0)
-		Backend_PrintError("Couldn't set color for drawing operations: %s", SDL_GetError());
+        if (SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF) < 0)
+                Backend_PrintError("Couldn't set color for drawing operations: %s", SDL_GetError());
 
-	SDL_RenderClear(renderer);
+        SDL_RenderClear(renderer);
 
-	if (SDL_RenderCopy(renderer, upscaled_framebuffer.texture != NULL ? upscaled_framebuffer.texture : framebuffer.texture, NULL, &window_rect) < 0)
-		Backend_PrintError("Failed to copy upscaled framebuffer texture to default render target: %s", SDL_GetError());
+        if (SDL_RenderCopy(renderer, framebuffer.texture, NULL, &window_rect) < 0)
+                Backend_PrintError("Failed to copy framebuffer texture to default render target: %s", SDL_GetError());
 
 	SDL_RenderPresent(renderer);
 }
@@ -408,6 +436,12 @@ void RenderBackend_DrawGlyph(long x, long y, size_t glyph_x, size_t glyph_y, siz
 		Backend_PrintError("Couldn't copy glyph texture portion to renderer: %s", SDL_GetError());
 }
 
+void RenderBackend_FlushSurfaces(void) {
+        for (RenderBackend_Surface *surface = surface_list_head; surface != NULL; surface = surface->next) {
+                surface->lost = true;
+        }
+}
+
 void RenderBackend_HandleRenderTargetLoss(void)
 {
 	for (RenderBackend_Surface *surface = surface_list_head; surface != NULL; surface = surface->next)
@@ -417,41 +451,30 @@ void RenderBackend_HandleRenderTargetLoss(void)
 
 void RenderBackend_HandleWindowResize(size_t width, size_t height)
 {
-	size_t upscale_factor = MAX(1, MIN((width + framebuffer.width / 2) / framebuffer.width, (height + framebuffer.height / 2) / framebuffer.height));
+        if (framebuffer.texture != NULL)
+        {
+                SDL_DestroyTexture(framebuffer.texture);
+                framebuffer.texture = NULL;
+        }
 
-	upscaled_framebuffer.width = framebuffer.width * upscale_factor;
-	upscaled_framebuffer.height = framebuffer.height * upscale_factor;
+        window_rect.x = 0;
+        window_rect.y = 0;
+        window_rect.w = width;
+        window_rect.h = height;
 
-	if (upscaled_framebuffer.texture != NULL)
-	{
-		SDL_DestroyTexture(upscaled_framebuffer.texture);
-		upscaled_framebuffer.texture = NULL;
-	}
+        framebuffer.width = window_rect.w;
+        framebuffer.height = window_rect.h;
 
-	// Create rect that forces 4:3 no matter what size the window is
-	if (width * upscaled_framebuffer.height >= upscaled_framebuffer.width * height) // Fancy way to do `if (width / height >= upscaled_framebuffer.width / upscaled_framebuffer.height)` without floats
-	{
-		window_rect.w = (height * upscaled_framebuffer.width) / upscaled_framebuffer.height;
-		window_rect.h = height;
-	}
-	else
-	{
-		window_rect.w = width;
-		window_rect.h = (width * upscaled_framebuffer.height) / upscaled_framebuffer.width;
-	}
+        if (framebuffer.texture != NULL)
+        {
+                SDL_DestroyTexture(framebuffer.texture);
+                framebuffer.texture = NULL;
+        }
 
-	window_rect.x = (width - window_rect.w) / 2;
-	window_rect.y = (height - window_rect.h) / 2;
+        framebuffer.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, width, height);
 
-	if (window_rect.w % framebuffer.width != 0 || window_rect.h % framebuffer.height != 0)
-	{
-		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-		upscaled_framebuffer.texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, upscaled_framebuffer.width, upscaled_framebuffer.height);
-		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+        if (framebuffer.texture == NULL)
+                Backend_PrintError("Couldn't regenerate framebuffer");
 
-		if (upscaled_framebuffer.texture == NULL)
-			Backend_PrintError("Couldn't regenerate upscaled framebuffer");
-
-		SDL_SetTextureBlendMode(upscaled_framebuffer.texture, SDL_BLENDMODE_NONE);
-	}
+        SDL_SetTextureBlendMode(framebuffer.texture, SDL_BLENDMODE_NONE);
 }

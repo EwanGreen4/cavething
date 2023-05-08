@@ -25,8 +25,8 @@ void MoveFrame3(void)
 	if (g_GameFlags & 8)
 	{
 		// Use the original camera boundaries during the credits
-		const int x_delta = -((WINDOW_WIDTH - 320) / 2) * 0x200;
-		const int y_delta = -((WINDOW_HEIGHT - 240) / 2) * 0x200;
+		const int x_delta = -((gDisplayMode.width - 320) / 2) * 0x200;
+		const int y_delta = -((gDisplayMode.height - 240) / 2) * 0x200;
 
 		gFrame.x += (x_delta + *gFrame.tgt_x - (320 * 0x200 / 2) - gFrame.x) / gFrame.wait;
 		gFrame.y += (y_delta + *gFrame.tgt_y - (240 * 0x200 / 2) - gFrame.y) / gFrame.wait;
@@ -44,34 +44,34 @@ void MoveFrame3(void)
 	else
 	{
 		// Widescreen/tallscreen-safe behaviour
-		if ((map_w - 1) * 16 < WINDOW_WIDTH)
+		if ((map_w - 1) * 16 < gDisplayMode.width)
 		{
-			gFrame.x = -(((WINDOW_WIDTH - ((map_w - 1) * 16)) * 0x200) / 2);
+			gFrame.x = -(((gDisplayMode.width - ((map_w - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
-			gFrame.x += (*gFrame.tgt_x - (WINDOW_WIDTH * 0x200 / 2) - gFrame.x) / gFrame.wait;
+			gFrame.x += (*gFrame.tgt_x - (gDisplayMode.width * 0x200 / 2) - gFrame.x) / gFrame.wait;
 
 			if (gFrame.x < 0)
 				gFrame.x = 0;
 
-			if (gFrame.x > (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200)
-				gFrame.x = (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200;
+			if (gFrame.x > (((map_w - 1) * 16) - gDisplayMode.width) * 0x200)
+				gFrame.x = (((map_w - 1) * 16) - gDisplayMode.width) * 0x200;
 		}
 
-		if ((map_l - 1) * 16 < WINDOW_HEIGHT)
+		if ((map_l - 1) * 16 < gDisplayMode.height)
 		{
-			gFrame.y = -(((WINDOW_HEIGHT - ((map_l - 1) * 16)) * 0x200) / 2);
+			gFrame.y = -(((gDisplayMode.height - ((map_l - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
-			gFrame.y += (*gFrame.tgt_y - (WINDOW_HEIGHT * 0x200 / 2) - gFrame.y) / gFrame.wait;
+			gFrame.y += (*gFrame.tgt_y - (gDisplayMode.height * 0x200 / 2) - gFrame.y) / gFrame.wait;
 
 			if (gFrame.y < 0)
 				gFrame.y = 0;
 
-			if (gFrame.y > (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200)
-				gFrame.y = (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200;
+			if (gFrame.y > (((map_l - 1) * 16) - gDisplayMode.height) * 0x200)
+				gFrame.y = (((map_l - 1) * 16) - gDisplayMode.height) * 0x200;
 		}
 	}
 #else
@@ -136,8 +136,8 @@ void SetFramePosition(int fx, int fy)
 	if (g_GameFlags & 8)
 	{
 		// Use the original camera boundaries during the credits
-		const int x_delta = -((WINDOW_WIDTH - 320) / 2) * 0x200;
-		const int y_delta = -((WINDOW_HEIGHT - 240) / 2) * 0x200;
+		const int x_delta = -((gDisplayMode.width - 320) / 2) * 0x200;
+		const int y_delta = -((gDisplayMode.height - 240) / 2) * 0x200;
 
 		if (gFrame.x < x_delta)
 			gFrame.x = x_delta;
@@ -152,30 +152,30 @@ void SetFramePosition(int fx, int fy)
 	else
 	{
 		// Widescreen/tallscreen-safe behaviour
-		if ((map_w - 1) * 16 < WINDOW_WIDTH)
+		if ((map_w - 1) * 16 < gDisplayMode.width)
 		{
-			gFrame.x = -(((WINDOW_WIDTH - ((map_w - 1) * 16)) * 0x200) / 2);
+			gFrame.x = -(((gDisplayMode.width - ((map_w - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
 			if (gFrame.x < 0)
 				gFrame.x = 0;
 
-			if (gFrame.x > (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200)
-				gFrame.x = (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200;
+			if (gFrame.x > (((map_w - 1) * 16) - gDisplayMode.width) * 0x200)
+				gFrame.x = (((map_w - 1) * 16) - gDisplayMode.width) * 0x200;
 		}
 
-		if ((map_l - 1) * 16 < WINDOW_HEIGHT)
+		if ((map_l - 1) * 16 < gDisplayMode.height)
 		{
-			gFrame.y = -(((WINDOW_HEIGHT - ((map_l - 1) * 16)) * 0x200) / 2);
+			gFrame.y = -(((gDisplayMode.height - ((map_l - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
 			if (gFrame.y < 0)
 				gFrame.y = 0;
 
-			if (gFrame.y > (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200)
-				gFrame.y = (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200;
+			if (gFrame.y > (((map_l - 1) * 16) - gDisplayMode.height) * 0x200)
+				gFrame.y = (((map_l - 1) * 16) - gDisplayMode.height) * 0x200;
 		}
 	}
 #else
@@ -202,16 +202,16 @@ void SetFrameMyChar(void)
 
 	GetMapData(0, &map_w, &map_l);
 
-	gFrame.x = mc_x - ((WINDOW_WIDTH / 2) * 0x200);
-	gFrame.y = mc_y - ((WINDOW_HEIGHT / 2) * 0x200);
+	gFrame.x = mc_x - ((gDisplayMode.width / 2) * 0x200);
+	gFrame.y = mc_y - ((gDisplayMode.height / 2) * 0x200);
 
 	// Keep in bounds
 #if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
 	if (g_GameFlags & 8)
 	{
 		// Use the original camera boundaries during the credits
-		const int x_delta = -((WINDOW_WIDTH - 320) / 2) * 0x200;
-		const int y_delta = -((WINDOW_HEIGHT - 240) / 2) * 0x200;
+		const int x_delta = -((gDisplayMode.width - 320) / 2) * 0x200;
+		const int y_delta = -((gDisplayMode.height - 240) / 2) * 0x200;
 
 		if (gFrame.x < x_delta)
 			gFrame.x = x_delta;
@@ -226,30 +226,30 @@ void SetFrameMyChar(void)
 	else
 	{
 		// Widescreen/tallscreen-safe behaviour
-		if ((map_w - 1) * 16 < WINDOW_WIDTH)
+		if ((map_w - 1) * 16 < gDisplayMode.width)
 		{
-			gFrame.x = -(((WINDOW_WIDTH - ((map_w - 1) * 16)) * 0x200) / 2);
+			gFrame.x = -(((gDisplayMode.width - ((map_w - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
 			if (gFrame.x < 0)
 				gFrame.x = 0;
 
-			if (gFrame.x > (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200)
-				gFrame.x = (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200;
+			if (gFrame.x > (((map_w - 1) * 16) - gDisplayMode.width) * 0x200)
+				gFrame.x = (((map_w - 1) * 16) - gDisplayMode.width) * 0x200;
 		}
 
-		if ((map_l - 1) * 16 < WINDOW_HEIGHT)
+		if ((map_l - 1) * 16 < gDisplayMode.height)
 		{
-			gFrame.y = -(((WINDOW_HEIGHT - ((map_l - 1) * 16)) * 0x200) / 2);
+			gFrame.y = -(((gDisplayMode.height - ((map_l - 1) * 16)) * 0x200) / 2);
 		}
 		else
 		{
 			if (gFrame.y < 0)
 				gFrame.y = 0;
 
-			if (gFrame.y > (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200)
-				gFrame.y = (((map_l - 1) * 16) - WINDOW_HEIGHT) * 0x200;
+			if (gFrame.y > (((map_l - 1) * 16) - gDisplayMode.height) * 0x200)
+				gFrame.y = (((map_l - 1) * 16) - gDisplayMode.height) * 0x200;
 		}
 	}
 #else
